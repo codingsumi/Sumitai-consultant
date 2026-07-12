@@ -58,6 +58,7 @@ export default function HomePage() {
           <div className="w-full max-w-[680px] space-y-6">
 
             {/* Hero */}
+            {messages.length === 0 && (
             <section className="flex flex-col items-center text-center pt-2">
               <div className="relative mb-4">
                 <div className="absolute inset-0 rounded-full bg-[#F97316]/15 blur-2xl scale-150" />
@@ -87,6 +88,7 @@ export default function HomePage() {
                 ))}
               </div>
             </section>
+            )}
 
             {/* chat messages */}
             <ChatMessages
