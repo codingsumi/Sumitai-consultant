@@ -41,6 +41,6 @@ export const sendMessageToAi = async(consultantSlug: string, message: string) =>
     const chain = await createConsultantChain(consultant.systemPrompt);
 
     return await chain.invoke({
-        message
+        messages: message
     });
 }

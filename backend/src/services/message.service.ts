@@ -1,12 +1,14 @@
 import prisma from "../config/prisma";
+import { sendMessageToAi } from "./chat.service";
 
-export const createHumanMessage = async (
+export const createMessage = async (
   chatId: string,
   content: string
 ) => {
   const chat = await prisma.chat.findUnique({
-    where: {
-      id: chatId,
+    where: { id: chatId },
+    include: {
+      consultant: true,
     },
   });
 
@@ -14,11 +16,29 @@ export const createHumanMessage = async (
     throw new Error("Chat not found");
   }
 
-  return await prisma.message.create({
+  // Save user message
+  await prisma.message.create({
     data: {
       chatId,
       role: "human",
       content,
     },
   });
+
+  // AI Response
+  const aiResponse = await sendMessageToAi(
+    chat.consultant.slug,
+    content
+  );
+
+  // Save AI message
+  await prisma.message.create({
+    data: {
+      chatId,
+      role: "ai",
+      content: aiResponse.answer,
+    },
+  });
+
+  return aiResponse;
 };
