@@ -1,3 +1,4 @@
+import { mapToLangChainMessages } from "../ai/message.mapper";
 import prisma from "../config/prisma";
 import { sendMessageToAi } from "./chat.service";
 
@@ -25,10 +26,24 @@ export const createMessage = async (
     },
   });
 
+
+  // Load complete history
+  const history = await prisma.message.findMany({
+    where: {
+      chatId,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  // Convert DB → LangChain Messages
+  const messages = mapToLangChainMessages(history);
+
   // AI Response
   const aiResponse = await sendMessageToAi(
     chat.consultant.slug,
-    content
+    messages
   );
 
   // Save AI message

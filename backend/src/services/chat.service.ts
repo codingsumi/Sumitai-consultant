@@ -1,5 +1,6 @@
 import prisma from "../config/prisma"
 import { createConsultantChain } from "../ai/chain.factory"
+import { BaseMessage } from "@langchain/core/messages"
 
 // create a new chat for a consultant
 export const createChat = async(consultantSlug: string) => {
@@ -26,7 +27,7 @@ export const createChat = async(consultantSlug: string) => {
 
 
 // send a message to the AI for a specific consultant
-export const sendMessageToAi = async(consultantSlug: string, message: string) => {
+export const sendMessageToAi = async(consultantSlug: string, history: BaseMessage[]) => {
     const consultant = await prisma.consultant.findFirst({
         where: {
             slug: consultantSlug,
@@ -41,6 +42,6 @@ export const sendMessageToAi = async(consultantSlug: string, message: string) =>
     const chain = await createConsultantChain(consultant.systemPrompt);
 
     return await chain.invoke({
-        messages: message
+        messages: history
     });
 }
