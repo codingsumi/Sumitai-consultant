@@ -1,12 +1,8 @@
 import {Router} from "express";
+import { chat } from "../controllers/chat.controller";
 
 const router = Router();
 
-router.get("/", (_, res) => {
-    res.json({
-        status: "success",
-        messsage: "Chat api is working",
-    });
-});
+router.get("/", chat);
 
 export default router;

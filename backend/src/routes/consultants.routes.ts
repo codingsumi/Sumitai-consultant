@@ -1,12 +1,8 @@
 import {Router} from "express";
+import { getConsultants } from "../controllers/consultants.controller";
 
 const router = Router();
 
-router.get("/", (_, res) => {
-    res.json({
-        status: "success",
-        message: "Consultants api is working",
-    });
-});
+router.get("/", getConsultants);
 
 export default router;
