@@ -54,10 +54,11 @@ export default function HomePage() {
           <Menu className="h-5 w-5" />
         </button>
 
-        <main className="flex flex-1 flex-col items-center justify-between px-4 py-6 sm:px-8">
-          <div className="w-full max-w-[680px] space-y-6">
+        <main className="flex flex-1 flex-col px-4 py-6 sm:px-8">
+          <div className="mx-auto flex h-full w-full max-w-[680px] flex-col">
 
             {/* Hero */}
+            <div className="flex-1 overflow-y-auto">
             {messages.length === 0 && (
             <section className="flex flex-col items-center text-center pt-2">
               <div className="relative mb-4">
@@ -95,8 +96,10 @@ export default function HomePage() {
               messages={messages}
               loading={loading}
             />
+            </div>
 
             {/* Prompt Box + Consultant Selector */}
+            <div className="pt-4">
             <PromptBox
               consultants={consultants}
               selectedConsultant={selectedConsultant}
@@ -106,11 +109,13 @@ export default function HomePage() {
               onSend={handleSendMessage}
               loading={loading}
             />
+            </div>
 
           </div>
 
           {/* Sticky bottom */}
-          <div className="w-full max-w-[680px] space-y-3 pt-4 pb-4">
+          {messages.length === 0 && (
+            <div className="w-full max-w-[680px] mx-auto space-y-3 pt-4 pb-4">
             <div className="flex items-center justify-center gap-6 flex-wrap">
               {trustItems.map(({ icon: Icon, label }) => (
                 <span key={label} className="flex items-center gap-1.5 text-xs text-[#9CA3AF]">
@@ -123,6 +128,7 @@ export default function HomePage() {
               Sumit AI can make mistakes. Please verify important information.
             </p>
           </div>
+          )}
         </main>
       </div>
     </div>
