@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Message } from "@/hooks/useChat";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +13,15 @@ export default function ChatMessages({
   messages,
   loading,
 }: ChatMessagesProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
   if (messages.length === 0) return null;
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   return (
     <div className="space-y-6">
@@ -60,6 +69,7 @@ export default function ChatMessages({
           </div>
         </div>
       )}
+      <div ref={bottomRef} />
     </div>
   );
 }
