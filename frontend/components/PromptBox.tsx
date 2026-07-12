@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Send, PillBottle, Atom, Tablets, Leaf, Apple, Brain, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConsultants } from "@/services/consultant.service"
 
 const iconMap: Record<string, React.ElementType> = {
   homeopathy: PillBottle,
@@ -30,11 +31,19 @@ export default function PromptBox({ selectedConsultant, onConsultantChange }: Pr
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    fetch("/api/consultants")
-      .then((r) => r.json())
-      .then((res) => setConsultants(res.data ?? []))
-      .catch(console.error);
+    const fetchConsultants = async () => {
+    try {
+      const consultants = await getConsultants();
+      setConsultants(consultants);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchConsultants();
   }, []);
+
+
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
@@ -88,7 +97,7 @@ export default function PromptBox({ selectedConsultant, onConsultantChange }: Pr
               key={id}
               onClick={() => onConsultantChange(slug)}
               className={cn(
-                "flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                 selectedConsultant === slug
                   ? "bg-[#F97316] text-white shadow-sm shadow-orange-200"
                   : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#F97316] hover:text-[#F97316]"
