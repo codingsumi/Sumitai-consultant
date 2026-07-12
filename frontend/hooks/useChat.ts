@@ -9,8 +9,8 @@ export interface Consultant {
 
 export const useChat = () => {
   const [consultants, setConsultants] = useState<Consultant[]>([]);
-  const [selectedConsultant, setSelectedConsultant] =
-    useState("homeopathy");
+  const [selectedConsultant, setSelectedConsultant] = useState("homeopathy");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const loadConsultants = async () => {
@@ -29,5 +29,7 @@ export const useChat = () => {
     consultants,
     selectedConsultant,
     setSelectedConsultant,
+    message,
+    setMessage,
   };
 };

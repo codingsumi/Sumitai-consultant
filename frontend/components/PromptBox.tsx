@@ -23,16 +23,18 @@ interface PromptBoxProps {
   consultants: Consultant[];
   selectedConsultant: string;
   onConsultantChange: (slug: string) => void;
+  message: string;
+  onMessageChange: (value: string) => void;
 }
 
-export default function PromptBox({ consultants, selectedConsultant, onConsultantChange }: PromptBoxProps) {
-  const [value, setValue] = useState("");
+export default function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange }: PromptBoxProps) {
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
+    onMessageChange(e.target.value);
     const el = textareaRef.current;
     if (el) {
       el.style.height = "auto";
@@ -52,7 +54,7 @@ export default function PromptBox({ consultants, selectedConsultant, onConsultan
       <div className="w-full rounded-2xl border border-[#FED7AA] bg-white shadow-sm focus-within:border-[#F97316] focus-within:shadow-[0_0_0_3px_rgba(249,115,22,0.07)] transition-all duration-200">
         <textarea
           ref={textareaRef}
-          value={value}
+          value={message}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           placeholder="Ask your question..."
@@ -63,11 +65,11 @@ export default function PromptBox({ consultants, selectedConsultant, onConsultan
           <button
             className={cn(
               "flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150",
-              value.trim()
+              message.trim()
                 ? "bg-[#F97316] text-white hover:bg-[#EA580C] hover:scale-105 shadow-md shadow-orange-200"
                 : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
             )}
-            disabled={!value.trim()}
+            disabled={!message.trim()}
           >
             <Send className="h-4 w-4" />
           </button>
