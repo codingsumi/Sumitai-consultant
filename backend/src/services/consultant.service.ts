@@ -1,8 +1,7 @@
+import prisma from "../config/prisma";
+
 export const getAllConsultants = () => {
-    return [
-        "Homeopathy",
-        "Ayurveda",
-        "Allopathy",
-        "Yoga",
-    ];
+    return prisma.consultant.findMany({
+        orderBy: { sortOrder: "asc" },
+    });
 }
