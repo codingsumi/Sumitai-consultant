@@ -5,6 +5,7 @@ import { Sparkles, CheckCircle2, Zap, ShieldCheck, Users2, Menu } from "lucide-r
 import Sidebar from "@/components/Sidebar";
 import PromptBox from "@/components/PromptBox";
 import { useChat } from "@/hooks/useChat";
+import ChatMessages from "@/components/ChatMessages";
 
 const heroBadges = [
   { icon: Users2, label: "Multiple AI Experts" },
@@ -86,6 +87,12 @@ export default function HomePage() {
                 ))}
               </div>
             </section>
+
+            {/* chat messages */}
+            <ChatMessages
+              messages={messages}
+              loading={loading}
+            />
 
             {/* Prompt Box + Consultant Selector */}
             <PromptBox
