@@ -55,7 +55,7 @@ export default function HomePage() {
         </button>
 
         <main className="flex flex-1 flex-col px-4 py-6 sm:px-8">
-          <div className="mx-auto flex h-full w-full max-w-[680px] flex-col">
+          <div className="mx-auto flex h-full w-full max-w-[750px] flex-col">
 
             {/* Hero */}
             <div className="flex-1 overflow-y-auto">
