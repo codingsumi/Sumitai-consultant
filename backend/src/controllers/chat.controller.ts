@@ -1,26 +1,20 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { createChat, sendMessageToAi } from "../services/chat.service";
+import { successResponse } from "../utils/apiResponse";
+import { asyncHandler } from "../utils/asyncHandler";
 
-// create a new chat for a consultant
-export const create = async (req: Request, res: Response) => {
-    try {
-        const { consultant } = req.body;
+export const create = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+    const { consultant } = req.body;
 
-        const chat = await createChat(consultant);
+    const chat = await createChat(consultant);
 
-        res.status(201).json({
-            success: true,
-            data: chat,
-        });
-    } catch (error: any) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
+    return successResponse(res, chat, "Chat created successfully", 201);
+});
 
-export const chat = async(req: any, res: any) => {
+export const chat = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
     const { consultant, message } = req.body;
 
     const response = await sendMessageToAi(consultant, message);
 
-    res.json(response);
-};
+    return successResponse(res, response, "Ai response");
+});
