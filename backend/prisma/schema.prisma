@@ -5,3 +5,21 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Consultant {
+  id String @id @default(cuid())
+  name String
+  slug String @unique
+  description String?
+
+  systemPrompt String @db.Text
+  tone String
+  disclaimer String @db.Text
+  allowedTopics Json
+
+  isAction Boolean @default(true)
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -14,12 +14,15 @@
   "type": "commonjs",
   "dependencies": {
     "@langchain/openai": "^1.5.5",
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@types/pg": "^8.20.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "langchain": "^1.5.3",
-    "openai": "^6.46.0"
+    "openai": "^6.46.0",
+    "pg": "^8.22.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -29,5 +32,10 @@
     "prisma": "^7.8.0",
     "tsx": "^4.23.0",
     "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.8.0": true,
+    "esbuild@0.28.1": true,
+    "prisma@7.8.0": true
   }
 }
