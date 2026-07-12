@@ -25,9 +25,11 @@ interface PromptBoxProps {
   onConsultantChange: (slug: string) => void;
   message: string;
   onMessageChange: (value: string) => void;
+  loading: boolean;
+  onSend: () => void;
 }
 
-export default function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange }: PromptBoxProps) {
+export default function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange, loading, onSend }: PromptBoxProps) {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -69,7 +71,8 @@ export default function PromptBox({ consultants, selectedConsultant, onConsultan
                 ? "bg-[#F97316] text-white hover:bg-[#EA580C] hover:scale-105 shadow-md shadow-orange-200"
                 : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
             )}
-            disabled={!message.trim()}
+            onClick={onSend}
+            disabled={!message.trim() || loading}
           >
             <Send className="h-4 w-4" />
           </button>

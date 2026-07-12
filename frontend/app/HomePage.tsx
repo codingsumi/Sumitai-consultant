@@ -21,7 +21,16 @@ const trustItems = [
 export default function HomePage() {
   const [activeNav, setActiveNav] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { consultants, selectedConsultant, setSelectedConsultant, message, setMessage } = useChat();
+  const { 
+    consultants, 
+    selectedConsultant, 
+    setSelectedConsultant, 
+    message, 
+    setMessage,
+    handleSendMessage,
+    messages,
+    loading
+  } = useChat();
 
   return (
     <div className="flex h-full bg-[#FAFAFA]">
@@ -85,6 +94,8 @@ export default function HomePage() {
               onConsultantChange={setSelectedConsultant}
               message={message}
               onMessageChange={setMessage}
+              onSend={handleSendMessage}
+              loading={loading}
             />
 
           </div>
