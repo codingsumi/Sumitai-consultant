@@ -17,7 +17,7 @@ model Consultant {
   disclaimer String @db.Text
   allowedTopics Json
 
-  isAction Boolean @default(true)
+  isActive Boolean @default(true)
   sortOrder Int @default(0)
 
   chats Chat[]
