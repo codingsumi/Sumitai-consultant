@@ -1,9 +1,8 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { Send, PillBottle, Atom, Tablets, Leaf, Apple, Brain, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getConsultants } from "@/services/consultant.service"
 
 const iconMap: Record<string, React.ElementType> = {
   homeopathy: PillBottle,
@@ -21,27 +20,14 @@ interface Consultant {
 }
 
 interface PromptBoxProps {
+  consultants: Consultant[];
   selectedConsultant: string;
-  onConsultantChange: (id: string) => void;
+  onConsultantChange: (slug: string) => void;
 }
 
-export default function PromptBox({ selectedConsultant, onConsultantChange }: PromptBoxProps) {
+export default function PromptBox({ consultants, selectedConsultant, onConsultantChange }: PromptBoxProps) {
   const [value, setValue] = useState("");
-  const [consultants, setConsultants] = useState<Consultant[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const fetchConsultants = async () => {
-    try {
-      const consultants = await getConsultants();
-      setConsultants(consultants);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  fetchConsultants();
-  }, []);
 
 
 

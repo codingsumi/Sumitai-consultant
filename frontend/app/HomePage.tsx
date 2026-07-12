@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sparkles, CheckCircle2, Zap, ShieldCheck, Users2, Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import PromptBox from "@/components/PromptBox";
+import { useChat } from "@/hooks/useChat";
 
 const heroBadges = [
   { icon: Users2, label: "Multiple AI Experts" },
@@ -20,7 +21,7 @@ const trustItems = [
 export default function HomePage() {
   const [activeNav, setActiveNav] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedConsultant, setSelectedConsultant] = useState("homeopathy");
+  const { consultants, selectedConsultant, setSelectedConsultant } = useChat();
 
   return (
     <div className="flex h-full bg-[#FAFAFA]">
@@ -79,6 +80,7 @@ export default function HomePage() {
 
             {/* Prompt Box + Consultant Selector */}
             <PromptBox
+              consultants={consultants}
               selectedConsultant={selectedConsultant}
               onConsultantChange={setSelectedConsultant}
             />
