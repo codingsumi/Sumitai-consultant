@@ -37,7 +37,7 @@ export default function ChatMessages({
         >
           <div
             className={cn(
-              "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-7",
+              "max-w-[80%] rounded-2xl px-4 py-2 text-sm leading-7",
               message.role === "human"
                 ? "bg-[#F97316] text-white"
                 : "bg-white border border-[#E5E7EB] text-[#111827]"

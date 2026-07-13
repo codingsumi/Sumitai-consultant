@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getConsultants } from "@/services/consultant.service";
-import { createChat, sendMessage } from "@/services/chat.service";
+import { createChat, sendMessage, getChats, getChatMessages } from "@/services/chat.service";
 
 export interface Consultant {
   id: string;
@@ -36,19 +36,61 @@ export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [loading, setLoading] = useState(false);
+  const [activeNav, setActiveNavState] = useState<string>("home");
 
   useEffect(() => {
-    const loadConsultants = async () => {
+    const initialize = async () => {
       try {
-        const data = await getConsultants();
-        setConsultants(data);
+        const [consultants] = await Promise.all([
+          getConsultants(),
+          loadChats(),
+        ]);
+
+        setConsultants(consultants);
       } catch (error) {
         console.error(error);
       }
     };
 
-    loadConsultants();
+    initialize();
   }, []);
+
+
+  // load chats
+  const loadChats = async () => {
+    try {
+      const data = await getChats();
+      setChats(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // load conversation
+  const loadConversation = async (chat: Chat) => {
+    try {
+      setLoading(true);
+
+      const data = await getChatMessages(chat.id);
+
+      setSelectedChat(chat);
+      setMessages(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNewChat = () => {
+    setSelectedChat(null);
+    setMessages([]);
+    setActiveNav("home");
+  };
+
+  const setActiveNav = (nav: string) => {
+    setActiveNavState(nav);
+  };
 
 
   const handleSendMessage = async () => {
@@ -107,6 +149,8 @@ export const useChat = () => {
     selectedChat,
     setSelectedChat,
 
+    loadConversation,
+
     message,
     setMessage,
 
@@ -115,5 +159,11 @@ export const useChat = () => {
 
     loading,
     handleSendMessage,
+
+    handleNewChat
+    ,
+    activeNav,
+    setActiveNav
   };
 };
+

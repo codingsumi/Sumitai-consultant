@@ -19,9 +19,11 @@ export const sendMessage = async (chatId: string, message: string) => {
 };
 
 export const getChats = async () => {
-  return api.get("/chat/list");
+  const {data} = await api.get("/chat/list");
+  return data.data;
 };
 
 export const getChatMessages = async (chatId: string) => {
-  return api.get(`/chat/${chatId}/messages`);
+  const {data} = await api.get(`/chat/${chatId}/messages`);
+  return data.data;
 };

@@ -22,28 +22,46 @@ const trustItems = [
 export default function HomePage() {
   const [activeNav, setActiveNav] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { 
-    consultants, 
-    selectedConsultant, 
-    setSelectedConsultant, 
-    message, 
-    setMessage,
-    handleSendMessage,
-    messages,
-    loading
-  } = useChat();
+  const {
+      consultants,
+      selectedConsultant,
+      setSelectedConsultant,
+
+      chats,
+      selectedChat,
+      setSelectedChat,
+      loadConversation,
+
+      message,
+      setMessage,
+
+      handleSendMessage,
+
+      messages,
+      setMessages,
+
+      loading,
+      handleNewChat,
+    } = useChat();
 
   return (
     <div className="flex h-full bg-[#FAFAFA]">
       <Sidebar
-        activeNav={activeNav}
-        onNavChange={(id) => {
-          setActiveNav(id);
-          setSidebarOpen(false);
-        }}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+          activeNav={activeNav}
+          onNavChange={(id) => {
+            setActiveNav(id);
+            setSidebarOpen(false);
+          }}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          chats={chats}
+          selectedChat={selectedChat}
+          onSelectChat={(chat) => {
+            loadConversation(chat);
+            setSidebarOpen(false);
+          }}
+          onNewChat={handleNewChat}
+        />
 
       <div className="flex flex-1 flex-col lg:ml-[280px] min-h-full">
         {/* Mobile menu trigger */}

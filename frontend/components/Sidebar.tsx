@@ -11,12 +11,18 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Chat } from "@/hooks/useChat";
 
 interface SidebarProps {
   activeNav: string;
   onNavChange: (item: string) => void;
   open: boolean;
   onClose: () => void;
+
+  chats: Chat[];
+  selectedChat: Chat | null;
+  onSelectChat: (chat: Chat) => void;
+  onNewChat: () => void;
 }
 
 const navItems = [
@@ -25,7 +31,7 @@ const navItems = [
   { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
 ];
 
-export default function Sidebar({ activeNav, onNavChange, open, onClose }: SidebarProps) {
+export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, selectedChat, onSelectChat, onNewChat }: SidebarProps) {
   return (
     <>
       {open && (
@@ -58,7 +64,9 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose }: Sideb
 
         {/* New Chat */}
         <div className="px-4 pb-4">
-          <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#EA580C]">
+          <button 
+          onClick={onNewChat}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#EA580C]">
             <Plus className="h-4 w-4" />
             New Chat
           </button>
@@ -82,6 +90,30 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose }: Sideb
             </button>
           ))}
         </nav>
+
+
+        <div className="border-t border-[#E5E7EB] px-3 py-4">
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-[#9CA3AF]">
+            Recent Chats
+          </h3>
+
+          <div className="space-y-1">
+            {chats.map((chat) => (
+              <button
+                key={chat.id}
+                onClick={() => onSelectChat(chat)}
+                className={cn(
+                  "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                  selectedChat?.id === chat.id
+                    ? "bg-[#FFF7ED] text-[#F97316]"
+                    : "text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#111827]"
+                )}
+              >
+                <p className="truncate">{chat.title}</p>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Bottom */}
         <div className="border-t border-[#E5E7EB] px-3 py-4 space-y-0.5">
