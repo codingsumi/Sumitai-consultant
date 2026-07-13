@@ -15,13 +15,13 @@ export default function ChatMessages({
 }: ChatMessagesProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  if (messages.length === 0) return null;
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages]);
+
+  if (messages.length === 0) return null;
 
   return (
     <div className="space-y-6">

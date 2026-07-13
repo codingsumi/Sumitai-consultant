@@ -1,6 +1,7 @@
 import { mapToLangChainMessages } from "../ai/message.mapper";
 import prisma from "../config/prisma";
 import { sendMessageToAi } from "./chat.service";
+import { generateChatTitle } from "./title.service";
 
 export const createMessage = async (
   chatId: string,
@@ -25,6 +26,18 @@ export const createMessage = async (
       content,
     },
   });
+
+  // Generate title only once
+  if (!chat.title) {
+    const title = await generateChatTitle(content);
+
+    await prisma.chat.update({
+      where: { id: chatId },
+      data: {
+        title,
+      },
+    });
+  }
 
 
   // Load complete history

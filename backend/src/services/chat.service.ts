@@ -51,6 +51,7 @@ export const chatList = async() => {
     return await prisma.chat.findMany({
         select: {
             id: true,
+            title: true,
             createdAt: true,
             consultant: {
                 select: {
