@@ -28,14 +28,7 @@ export const createMessage = async (
 
 
   // Load complete history
-  const history = await prisma.message.findMany({
-    where: {
-      chatId,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+  const history = await chatHistory(chatId);
 
   // Convert DB → LangChain Messages
   const messages = mapToLangChainMessages(history);
@@ -57,3 +50,14 @@ export const createMessage = async (
 
   return aiResponse;
 };
+
+export const chatHistory = async (chatId: string) => {
+  return await prisma.message.findMany({
+      where: {
+        chatId,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+  });
+}

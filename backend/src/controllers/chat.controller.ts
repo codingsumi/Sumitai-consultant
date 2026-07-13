@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { createChat, sendMessageToAi } from "../services/chat.service";
+import { createChat, sendMessageToAi, chatList } from "../services/chat.service";
 import { successResponse } from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 
@@ -18,3 +18,9 @@ export const chat = asyncHandler(async (req: Request, res: Response, _next: Next
 
     return successResponse(res, response, "Ai response");
 });
+
+// return chat list
+export const chats = async(req: Request, res: Response) => {
+    const chatLists = await chatList();
+    return successResponse(res, chatLists, "Chat lists");
+}

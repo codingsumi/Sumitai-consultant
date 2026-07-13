@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { createMessage } from "../services/message.service";
+import { createMessage, chatHistory } from "../services/message.service";
 import { successResponse } from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 
@@ -15,4 +15,12 @@ export const create = asyncHandler(async (req: Request, res: Response, _next: Ne
     "Message created successfully",
     201
   );
+});
+
+export const chatMessages = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+  const { chatId } = req.params;
+
+  const response = await chatHistory(chatId);
+
+  return successResponse(res, response, "Messages fetched successfully");
 });

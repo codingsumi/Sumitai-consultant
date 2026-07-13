@@ -45,3 +45,22 @@ export const sendMessageToAi = async(consultantSlug: string, history: BaseMessag
         messages: history
     });
 }
+
+// chat list
+export const chatList = async() => {
+    return await prisma.chat.findMany({
+        select: {
+            id: true,
+            createdAt: true,
+            consultant: {
+                select: {
+                    name: true,
+                    slug: true
+                }
+            }
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    })
+}
