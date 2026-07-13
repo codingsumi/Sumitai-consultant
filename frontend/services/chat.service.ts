@@ -17,3 +17,11 @@ export const sendMessage = async (chatId: string, message: string) => {
 
   return data.data;
 };
+
+export const getChats = async () => {
+  return api.get("/chat/list");
+};
+
+export const getChatMessages = async (chatId: string) => {
+  return api.get(`/chat/${chatId}/messages`);
+};

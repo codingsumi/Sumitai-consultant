@@ -14,13 +14,24 @@ export interface Message {
   followUpQuestions?: string[];
 }
 
+export interface Chat {
+  id: string;
+  title: string;
+  createdAt: string;
+  consultant: {
+    name: string;
+    slug: string;
+  };
+}
+
 export const useChat = () => {
   const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [selectedConsultant, setSelectedConsultant] = useState("homeopathy");
 
-  const [chatId, setChatId] = useState<string | null>(null);
-
   const [message, setMessage] = useState("");
+
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -46,12 +57,12 @@ export const useChat = () => {
     try {
       setLoading(true);
 
-      let currentChatId = chatId;
+      let currentChat = selectedChat;
 
-      if (!currentChatId) {
+      if (!currentChat) {
         const chat = await createChat(selectedConsultant);
-        currentChatId = chat.id;
-        setChatId(chat.id);
+        currentChat = chat;
+        setSelectedChat(chat);
       }
 
       const userMessage = message;
@@ -68,7 +79,7 @@ export const useChat = () => {
       setMessage("");
 
       // AI Response
-      const ai = await sendMessage(currentChatId, userMessage);
+      const ai = await sendMessage(currentChat.id, userMessage);
 
       // Show AI message
       setMessages((prev) => [
@@ -90,9 +101,18 @@ export const useChat = () => {
     consultants,
     selectedConsultant,
     setSelectedConsultant,
+
+    chats,
+    setChats,
+    selectedChat,
+    setSelectedChat,
+
     message,
     setMessage,
+
     messages,
+    setMessages,
+
     loading,
     handleSendMessage,
   };
