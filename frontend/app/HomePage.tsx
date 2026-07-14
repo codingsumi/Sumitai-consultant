@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Sparkles, CheckCircle2, Zap, ShieldCheck, Users2, Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import PromptBox from "@/components/PromptBox";
@@ -21,7 +21,6 @@ const trustItems = [
 
 export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const {
       consultants,
       selectedConsultant,
@@ -38,27 +37,12 @@ export default function HomePage() {
 
       messages,
 
-      loading,
+      isStreaming,
       conversationLoading,
-      conversationId,
       handleNewChat,
       activeNav,
       setActiveNav,
     } = useChat();
-
-  // Scroll once after a new conversation finishes loading
-  useEffect(() => {
-    if (conversationId) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [conversationId]);
-
-  // Scroll after each new message during an active chat session
-  useEffect(() => {
-    if (!conversationLoading && messages.length > 0) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, conversationLoading]);
 
   return (
     <div className="flex h-full bg-[#FAFAFA]">
@@ -129,10 +113,9 @@ export default function HomePage() {
             {/* chat messages */}
             <ChatMessages
               messages={messages}
-              loading={loading}
+              isStreaming={isStreaming}
               conversationLoading={conversationLoading}
             />
-            <div ref={bottomRef} />
             </div>
 
             {/* Prompt Box + Consultant Selector */}
@@ -144,7 +127,7 @@ export default function HomePage() {
               message={message}
               onMessageChange={setMessage}
               onSend={handleSendMessage}
-              loading={loading}
+              loading={isStreaming}
             />
             </div>
 

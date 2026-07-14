@@ -1,11 +1,18 @@
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts"
-import { llm } from "./model";
+import { llm, streamingLlm } from "./model";
 
 export const createConsultantChain = async(systemPrompt: string) => {
- const prompt = ChatPromptTemplate.fromMessages([
+  const prompt = ChatPromptTemplate.fromMessages([
     ["system", systemPrompt],
-     new MessagesPlaceholder("messages"),
- ]);
+    new MessagesPlaceholder("messages"),
+  ]);
+  return prompt.pipe(llm);
+};
 
- return prompt.pipe(llm);
-}
+export const createStreamingConsultantChain = (systemPrompt: string) => {
+  const prompt = ChatPromptTemplate.fromMessages([
+    ["system", systemPrompt],
+    new MessagesPlaceholder("messages"),
+  ]);
+  return prompt.pipe(streamingLlm);
+};

@@ -1,6 +1,7 @@
 import prisma from "../config/prisma"
-import { createConsultantChain } from "../ai/chain.factory"
+import { createConsultantChain, createStreamingConsultantChain } from "../ai/chain.factory"
 import { BaseMessage } from "@langchain/core/messages"
+import { Response } from "express"
 
 // create a new chat for a consultant
 export const createChat = async(consultantSlug: string) => {
@@ -44,6 +45,33 @@ export const sendMessageToAi = async(consultantSlug: string, history: BaseMessag
     return await chain.invoke({
         messages: history
     });
+}
+
+// stream tokens to the client via SSE, returns the full accumulated text
+export const streamMessageToAi = async(
+    consultantSlug: string,
+    history: BaseMessage[],
+    res: Response
+): Promise<string> => {
+    const consultant = await prisma.consultant.findFirst({
+        where: { slug: consultantSlug, isActive: true }
+    });
+
+    if (!consultant) throw new Error("Consultant not found");
+
+    const chain = createStreamingConsultantChain(consultant.systemPrompt);
+    const stream = await chain.stream({ messages: history });
+
+    let fullText = "";
+    for await (const chunk of stream) {
+        const token = chunk.content as string;
+        if (token) {
+            fullText += token;
+            res.write(`data: ${JSON.stringify({ token })}\n\n`);
+        }
+    }
+
+    return fullText;
 }
 
 // chat list
