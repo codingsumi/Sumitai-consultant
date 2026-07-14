@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Send, PillBottle, Atom, Tablets, Leaf, Apple, Brain, Stethoscope } from "lucide-react";
+import { memo, useEffect, useRef } from "react";
+import { PillBottle, Atom, Tablets, Leaf, Apple, Brain, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const MAX_HEIGHT = 200;
 
 const iconMap: Record<string, React.ElementType> = {
   homeopathy: PillBottle,
@@ -29,54 +31,41 @@ interface PromptBoxProps {
   onSend: () => void;
 }
 
-export default function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange, loading, onSend }: PromptBoxProps) {
-
+function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange, loading, onSend }: PromptBoxProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const composingRef = useRef(false);
 
-
-
-  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onMessageChange(e.target.value);
+  // Resize textarea whenever message changes (including reset to empty)
+  useEffect(() => {
     const el = textareaRef.current;
-    if (el) {
-      el.style.height = "auto";
-      el.style.height = Math.min(el.scrollHeight, 240) + "px";
-    }
-  };
+    if (!el) return;
+    el.style.height = "auto";
+    const next = Math.min(el.scrollHeight, MAX_HEIGHT);
+    el.style.height = next + "px";
+    el.style.overflowY = el.scrollHeight > MAX_HEIGHT ? "auto" : "hidden";
+  }, [message]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey && !composingRef.current) {
       e.preventDefault();
+      if (message.trim() && !loading) onSend();
     }
   };
 
   return (
     <div className="w-full space-y-3">
-      {/* Prompt input */}
       <div className="w-full rounded-2xl border border-[#FED7AA] bg-white shadow-sm focus-within:border-[#F97316] focus-within:shadow-[0_0_0_3px_rgba(249,115,22,0.07)] transition-all duration-200">
         <textarea
           ref={textareaRef}
           value={message}
-          onChange={handleInput}
+          rows={1}
+          onChange={(e) => onMessageChange(e.target.value)}
           onKeyDown={handleKeyDown}
+          onCompositionStart={() => { composingRef.current = true; }}
+          onCompositionEnd={() => { composingRef.current = false; }}
           placeholder="Ask your question..."
-          rows={4}
-          className="w-full resize-none bg-transparent px-5 pt-5 pb-4 text-[15px] text-[#111827] placeholder:text-[#9CA3AF] outline-none min-h-[120px] max-h-[240px]"
+          className="w-full resize-none bg-transparent px-5 py-4 text-[15px] text-[#111827] placeholder:text-[#9CA3AF] outline-none leading-relaxed"
         />
-        <div className="flex justify-end px-4 pb-4">
-          <button
-            className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150",
-              message.trim()
-                ? "bg-[#F97316] text-white hover:bg-[#EA580C] hover:scale-105 shadow-md shadow-orange-200"
-                : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
-            )}
-            onClick={onSend}
-            disabled={!message.trim() || loading}
-          >
-            <Send className="h-4 w-4" />
-          </button>
-        </div>
       </div>
 
       {/* Consultant pill selector */}
@@ -103,3 +92,5 @@ export default function PromptBox({ consultants, selectedConsultant, onConsultan
     </div>
   );
 }
+
+export default memo(PromptBox);

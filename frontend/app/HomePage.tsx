@@ -45,7 +45,7 @@ export default function HomePage() {
     } = useChat();
 
   return (
-    <div className="flex h-full bg-[#FAFAFA]">
+    <div className="flex h-full overflow-hidden bg-[#FAFAFA]">
       <Sidebar
           activeNav={activeNav}
           onNavChange={(id) => {
@@ -64,7 +64,7 @@ export default function HomePage() {
           conversationLoading={conversationLoading}
         />
 
-      <div className="flex flex-1 flex-col lg:ml-[280px] min-h-full">
+      <div className="flex flex-1 flex-col lg:ml-[280px] h-full overflow-hidden">
         {/* Mobile menu trigger */}
         <button
           onClick={() => setSidebarOpen(true)}
@@ -73,82 +73,78 @@ export default function HomePage() {
           <Menu className="h-5 w-5" />
         </button>
 
-        <main className="flex flex-1 flex-col px-4 py-6 sm:px-8">
-          <div className="mx-auto flex h-full w-full max-w-[750px] flex-col">
+        <main className="flex flex-1 flex-col overflow-hidden px-4 py-6 sm:px-8">
+          <div className="mx-auto flex h-full w-full max-w-[750px] flex-col overflow-hidden">
 
-            {/* Hero */}
-            <div className="flex-1 overflow-y-auto">
-            {messages.length === 0 && (
-            <section className="flex flex-col items-center text-center pt-2">
-              <div className="relative mb-4">
-                <div className="absolute inset-0 rounded-full bg-[#F97316]/15 blur-2xl scale-150" />
-                <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F97316] shadow-lg shadow-orange-200">
-                  <Sparkles className="h-6 w-6 text-white" />
+            {/* Scrollable message area */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              {messages.length === 0 && (
+                <section className="flex flex-col items-center text-center pt-2">
+                  <div className="relative mb-4">
+                    <div className="absolute inset-0 rounded-full bg-[#F97316]/15 blur-2xl scale-150" />
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F97316] shadow-lg shadow-orange-200">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+
+                  <h1 className="text-xl font-bold tracking-tight text-[#111827] sm:text-2xl leading-tight">
+                    Your Personal AI Consultant
+                  </h1>
+
+                  <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
+                    Get specialized AI guidance in Homeopathy, Ayurveda, Allopathy, and Yoga—all in one place. Choose your preferred medical approach and receive personalized, intelligent assistance within seconds.
+                  </p>
+
+                  <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
+                    {heroBadges.map(({ icon: Icon, label }) => (
+                      <span
+                        key={label}
+                        className="flex items-center gap-1.5 rounded-full bg-[#FFF7ED] border border-[#FED7AA] px-3 py-1 text-xs font-medium text-[#EA580C]"
+                      >
+                        <Icon className="h-3 w-3" />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              <ChatMessages
+                messages={messages}
+                isStreaming={isStreaming}
+                conversationLoading={conversationLoading}
+              />
+            </div>
+
+            {/* Sticky composer — flex-shrink-0 keeps it pinned, never pushed by content */}
+            <div className="flex-shrink-0 pt-4 pb-2">
+              <PromptBox
+                consultants={consultants}
+                selectedConsultant={selectedConsultant}
+                onConsultantChange={setSelectedConsultant}
+                message={message}
+                onMessageChange={setMessage}
+                onSend={handleSendMessage}
+                loading={isStreaming}
+              />
+              {messages.length === 0 && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-center gap-6 flex-wrap">
+                    {trustItems.map(({ icon: Icon, label }) => (
+                      <span key={label} className="flex items-center gap-1.5 text-xs text-[#9CA3AF]">
+                        <Icon className="h-3.5 w-3.5 text-[#F97316]" />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-center text-xs text-[#C4C9D4]">
+                    Sumit AI can make mistakes. Please verify important information.
+                  </p>
                 </div>
-              </div>
-
-              <h1 className="text-xl font-bold tracking-tight text-[#111827] sm:text-2xl leading-tight">
-                Your Personal AI Consultant
-              </h1>
-
-              <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
-                Get specialized AI guidance in Homeopathy, Ayurveda, Allopathy, and Yoga—all in one place. Choose your preferred medical approach and receive personalized, intelligent assistance within seconds.
-              </p>
-
-              {/* Feature badges */}
-              <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
-                {heroBadges.map(({ icon: Icon, label }) => (
-                  <span
-                    key={label}
-                    className="flex items-center gap-1.5 rounded-full bg-[#FFF7ED] border border-[#FED7AA] px-3 py-1 text-xs font-medium text-[#EA580C]"
-                  >
-                    <Icon className="h-3 w-3" />
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </section>
-            )}
-
-            {/* chat messages */}
-            <ChatMessages
-              messages={messages}
-              isStreaming={isStreaming}
-              conversationLoading={conversationLoading}
-            />
-            </div>
-
-            {/* Prompt Box + Consultant Selector */}
-            <div className="pt-4">
-            <PromptBox
-              consultants={consultants}
-              selectedConsultant={selectedConsultant}
-              onConsultantChange={setSelectedConsultant}
-              message={message}
-              onMessageChange={setMessage}
-              onSend={handleSendMessage}
-              loading={isStreaming}
-            />
+              )}
             </div>
 
           </div>
-
-          {/* Sticky bottom */}
-          {messages.length === 0 && (
-            <div className="w-full max-w-[680px] mx-auto space-y-3 pt-4 pb-4">
-            <div className="flex items-center justify-center gap-6 flex-wrap">
-              {trustItems.map(({ icon: Icon, label }) => (
-                <span key={label} className="flex items-center gap-1.5 text-xs text-[#9CA3AF]">
-                  <Icon className="h-3.5 w-3.5 text-[#F97316]" />
-                  {label}
-                </span>
-              ))}
-            </div>
-            <p className="text-center text-xs text-[#C4C9D4]">
-              Sumit AI can make mistakes. Please verify important information.
-            </p>
-          </div>
-          )}
         </main>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -48,7 +48,7 @@ const components: Components = {
   },
 };
 
-export default function MarkdownRenderer({ content }: { content: string }) {
+export default memo(function MarkdownRenderer({ content }: { content: string }) {
   return (
     <div className="md">
       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={components}>
@@ -56,4 +56,4 @@ export default function MarkdownRenderer({ content }: { content: string }) {
       </ReactMarkdown>
     </div>
   );
-}
+});

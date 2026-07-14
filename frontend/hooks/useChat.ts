@@ -39,7 +39,10 @@ export const useChat = () => {
   const [activeNav, setActiveNavState] = useState<string>("home");
 
   const abortRef = useRef<AbortController | null>(null);
-  // Tracks the streaming message id so we can update only that slot
+
+  // Buffer for incoming tokens — flushed to React state via rAF, not on every token
+  const tokenBufferRef = useRef("");
+  const rafRef = useRef<number | null>(null);
   const streamingIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -68,7 +71,6 @@ export const useChat = () => {
       setConversationLoading(true);
       setSelectedChat(chat);
       const data = await getChatMessages(chat.id);
-      // Assign stable ids to loaded messages
       setMessages(data.map((m: Omit<Message, "id">, i: number) => ({ ...m, id: `loaded-${i}` })));
       setConversationId(chat.id);
     } catch (error) {
@@ -80,6 +82,8 @@ export const useChat = () => {
 
   const handleNewChat = () => {
     abortRef.current?.abort();
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    tokenBufferRef.current = "";
     setSelectedChat(null);
     setMessages([]);
     setConversationId(null);
@@ -88,7 +92,6 @@ export const useChat = () => {
 
   const setActiveNav = (nav: string) => setActiveNavState(nav);
 
-  // Immutably update only the streaming message by id
   const updateStreamingMessage = useCallback((id: string, patch: Partial<Message>) => {
     setMessages((prev) =>
       prev.map((m) => (m.id === id ? { ...m, ...patch } : m))
@@ -113,6 +116,7 @@ export const useChat = () => {
     const userMsgId = `user-${Date.now()}`;
     const aiMsgId = `ai-${Date.now()}`;
     streamingIdRef.current = aiMsgId;
+    tokenBufferRef.current = "";
 
     setMessages((prev) => [
       ...prev,
@@ -123,16 +127,32 @@ export const useChat = () => {
     setIsStreaming(true);
     abortRef.current = new AbortController();
 
+    // Schedule a rAF loop that drains the token buffer into React state.
+    // This decouples the network token rate from the React render rate —
+    // tokens accumulate in the ref between frames and are committed once per frame.
+    const flushBuffer = () => {
+      if (tokenBufferRef.current === "") {
+        rafRef.current = requestAnimationFrame(flushBuffer);
+        return;
+      }
+      const pending = tokenBufferRef.current;
+      tokenBufferRef.current = "";
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === aiMsgId ? { ...m, content: m.content + pending } : m
+        )
+      );
+      rafRef.current = requestAnimationFrame(flushBuffer);
+    };
+    rafRef.current = requestAnimationFrame(flushBuffer);
+
     await streamMessage(
       chatId,
       userText,
       {
+        // Tokens go into the ref only — zero setState calls here
         onToken: (token) => {
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === aiMsgId ? { ...m, content: m.content + token } : m
-            )
-          );
+          tokenBufferRef.current += token;
         },
         onTitle: (title) => {
           setSelectedChat((prev) => prev ? { ...prev, title } : prev);
@@ -141,11 +161,22 @@ export const useChat = () => {
           );
         },
         onDone: () => {
-          updateStreamingMessage(aiMsgId, { streaming: false });
+          // Cancel the rAF loop, flush any remaining buffer synchronously
+          if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+          const remaining = tokenBufferRef.current;
+          tokenBufferRef.current = "";
+          setMessages((prev) =>
+            prev.map((m) => {
+              if (m.id !== aiMsgId) return m;
+              return { ...m, content: m.content + remaining, streaming: false };
+            })
+          );
           setIsStreaming(false);
           loadChats();
         },
         onError: (msg) => {
+          if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+          tokenBufferRef.current = "";
           console.error("Stream error:", msg);
           updateStreamingMessage(aiMsgId, { streaming: false, error: true });
           setIsStreaming(false);
