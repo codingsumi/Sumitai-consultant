@@ -74,7 +74,7 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, 
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 space-y-0.5">
+        <nav className="flex-1 px-3 space-y-0.5">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}

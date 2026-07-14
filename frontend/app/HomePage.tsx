@@ -19,52 +19,52 @@ const trustItems = [
   { icon: ShieldCheck, label: "Fast & Secure Conversations" },
 ];
 
-export default function HomePage() {
+interface HomePageProps {
+  initialConsultantSlug?: string;
+  initialChatId?: string;
+}
+
+export default function HomePage({ initialConsultantSlug, initialChatId }: HomePageProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
-      consultants,
-      selectedConsultant,
-      setSelectedConsultant,
-
-      chats,
-      selectedChat,
-      loadConversation,
-
-      message,
-      setMessage,
-
-      handleSendMessage,
-
-      messages,
-
-      isStreaming,
-      conversationLoading,
-      handleNewChat,
-      activeNav,
-      setActiveNav,
-    } = useChat();
+    consultants,
+    selectedConsultant,
+    setSelectedConsultant,
+    chats,
+    selectedChat,
+    handleSelectChat,
+    message,
+    setMessage,
+    handleSendMessage,
+    messages,
+    isStreaming,
+    conversationLoading,
+    handleNewChat,
+    activeNav,
+    setActiveNav,
+  } = useChat({ initialChatId, initialConsultantSlug });
 
   return (
     <div className="flex h-full overflow-hidden bg-[#FAFAFA]">
       <Sidebar
-          activeNav={activeNav}
-          onNavChange={(id) => {
-            setActiveNav(id);
-            setSidebarOpen(false);
-          }}
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          chats={chats}
-          selectedChat={selectedChat}
-          onSelectChat={(chat) => {
-            loadConversation(chat);
-            setSidebarOpen(false);
-          }}
-          onNewChat={handleNewChat}
-          conversationLoading={conversationLoading}
-        />
+        activeNav={activeNav}
+        onNavChange={(id) => {
+          setActiveNav(id);
+          setSidebarOpen(false);
+        }}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        chats={chats}
+        selectedChat={selectedChat}
+        onSelectChat={(chat) => {
+          handleSelectChat(chat);
+          setSidebarOpen(false);
+        }}
+        onNewChat={handleNewChat}
+        conversationLoading={conversationLoading}
+      />
 
-      <div className="flex flex-1 flex-col lg:ml-[280px] h-full overflow-hidden">
+      <div className="flex flex-1 flex-col lg:ml-[280px] min-h-0">
         {/* Mobile menu trigger */}
         <button
           onClick={() => setSidebarOpen(true)}
@@ -73,12 +73,13 @@ export default function HomePage() {
           <Menu className="h-5 w-5" />
         </button>
 
-        <main className="flex flex-1 flex-col overflow-hidden px-4 py-6 sm:px-8">
-          <div className="mx-auto flex h-full w-full max-w-[750px] flex-col overflow-hidden">
+        {/* Outer scroll container — single scrollbar on the far right */}
+        <div data-scroll-root className="flex-1 overflow-y-auto min-h-0">
+          <div className="mx-auto flex min-h-full w-full max-w-[750px] flex-col px-4 py-6 sm:px-8">
 
-            {/* Scrollable message area */}
-            <div className="flex-1 overflow-y-auto min-h-0">
-              {messages.length === 0 && (
+            {/* Message area grows to fill available space */}
+            <div className="flex-1">
+              {messages.length === 0 && !conversationLoading && (
                 <section className="flex flex-col items-center text-center pt-2">
                   <div className="relative mb-4">
                     <div className="absolute inset-0 rounded-full bg-[#F97316]/15 blur-2xl scale-150" />
@@ -116,8 +117,8 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Sticky composer — flex-shrink-0 keeps it pinned, never pushed by content */}
-            <div className="flex-shrink-0 pt-4 pb-2">
+            {/* Sticky composer pinned to bottom of viewport via sticky */}
+            <div className="sticky bottom-0 bg-[#FAFAFA] pt-4 pb-2">
               <PromptBox
                 consultants={consultants}
                 selectedConsultant={selectedConsultant}
@@ -127,7 +128,7 @@ export default function HomePage() {
                 onSend={handleSendMessage}
                 loading={isStreaming}
               />
-              {messages.length === 0 && (
+              {messages.length === 0 && !conversationLoading && (
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center justify-center gap-6 flex-wrap">
                     {trustItems.map(({ icon: Icon, label }) => (
@@ -145,7 +146,7 @@ export default function HomePage() {
             </div>
 
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

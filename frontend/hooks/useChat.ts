@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getConsultants } from "@/services/consultant.service";
 import { createChat, streamMessage, getChats, getChatMessages } from "@/services/chat.service";
 
@@ -26,61 +27,101 @@ export interface Chat {
   };
 }
 
-export const useChat = () => {
+interface UseChatOptions {
+  initialChatId?: string;
+  initialConsultantSlug?: string;
+}
+
+export const useChat = (options: UseChatOptions = {}) => {
+  const { initialChatId, initialConsultantSlug } = options;
+  const router = useRouter();
+
   const [consultants, setConsultants] = useState<Consultant[]>([]);
-  const [selectedConsultant, setSelectedConsultant] = useState("homeopathy");
+  const [selectedConsultant, setSelectedConsultant] = useState(
+    initialConsultantSlug ?? "homeopathy"
+  );
   const [message, setMessage] = useState("");
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(
+    initialChatId ?? null
+  );
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationLoading, setConversationLoading] = useState(false);
   const [activeNav, setActiveNavState] = useState<string>("home");
 
   const abortRef = useRef<AbortController | null>(null);
-
-  // Buffer for incoming tokens — flushed to React state via rAF, not on every token
   const tokenBufferRef = useRef("");
   const rafRef = useRef<number | null>(null);
   const streamingIdRef = useRef<string | null>(null);
+  // Prevent double-loading on StrictMode double-invoke
+  const initialLoadDoneRef = useRef(false);
 
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        const [consultants] = await Promise.all([getConsultants(), loadChats()]);
-        setConsultants(consultants);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    initialize();
-  }, []);
-
-  const loadChats = async () => {
+  const loadChats = useCallback(async () => {
     try {
       const data = await getChats();
       setChats(data);
+      return data as Chat[];
     } catch (error) {
       console.error(error);
+      return [];
     }
-  };
+  }, []);
 
-  const loadConversation = async (chat: Chat) => {
+  const loadConversation = useCallback(async (chat: Chat) => {
     try {
       setConversationLoading(true);
       setSelectedChat(chat);
+      setConversationId(chat.id);
+      setSelectedConsultant(chat.consultant.slug);
       const data = await getChatMessages(chat.id);
       setMessages(data.map((m: Omit<Message, "id">, i: number) => ({ ...m, id: `loaded-${i}` })));
-      setConversationId(chat.id);
     } catch (error) {
       console.error(error);
     } finally {
       setConversationLoading(false);
     }
-  };
+  }, []);
 
-  const handleNewChat = () => {
+  // On mount: load consultants + chats, then restore conversation from URL if present
+  useEffect(() => {
+    if (initialLoadDoneRef.current) return;
+    initialLoadDoneRef.current = true;
+
+    const initialize = async () => {
+      try {
+        const [fetchedConsultants, fetchedChats] = await Promise.all([
+          getConsultants(),
+          loadChats(),
+        ]);
+        setConsultants(fetchedConsultants);
+
+        if (initialChatId) {
+          const match = (fetchedChats as Chat[]).find((c) => c.id === initialChatId);
+          if (match) {
+            await loadConversation(match);
+            setActiveNavState("chats");
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    initialize();
+  }, [initialChatId, loadChats, loadConversation]);
+
+  const navigateToChat = useCallback((chat: Chat) => {
+    router.push(`/chat/${chat.consultant.slug}/${chat.id}`, { scroll: false });
+  }, [router]);
+
+  const handleSelectChat = useCallback(async (chat: Chat) => {
+    navigateToChat(chat);
+    await loadConversation(chat);
+    setActiveNavState("chats");
+  }, [navigateToChat, loadConversation]);
+
+  const handleNewChat = useCallback(() => {
     abortRef.current?.abort();
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     tokenBufferRef.current = "";
@@ -88,7 +129,8 @@ export const useChat = () => {
     setMessages([]);
     setConversationId(null);
     setActiveNavState("home");
-  };
+    router.push("/chat", { scroll: false });
+  }, [router]);
 
   const setActiveNav = (nav: string) => setActiveNavState(nav);
 
@@ -110,6 +152,7 @@ export const useChat = () => {
       currentChat = chat;
       setSelectedChat(chat);
       setConversationId(chat.id);
+      navigateToChat(chat);
     }
 
     const chatId = currentChat!.id;
@@ -127,9 +170,6 @@ export const useChat = () => {
     setIsStreaming(true);
     abortRef.current = new AbortController();
 
-    // Schedule a rAF loop that drains the token buffer into React state.
-    // This decouples the network token rate from the React render rate —
-    // tokens accumulate in the ref between frames and are committed once per frame.
     const flushBuffer = () => {
       if (tokenBufferRef.current === "") {
         rafRef.current = requestAnimationFrame(flushBuffer);
@@ -150,7 +190,6 @@ export const useChat = () => {
       chatId,
       userText,
       {
-        // Tokens go into the ref only — zero setState calls here
         onToken: (token) => {
           tokenBufferRef.current += token;
         },
@@ -161,7 +200,6 @@ export const useChat = () => {
           );
         },
         onDone: () => {
-          // Cancel the rAF loop, flush any remaining buffer synchronously
           if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
           const remaining = tokenBufferRef.current;
           tokenBufferRef.current = "";
@@ -195,6 +233,7 @@ export const useChat = () => {
     selectedChat,
     setSelectedChat,
     loadConversation,
+    handleSelectChat,
     message,
     setMessage,
     messages,
