@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, CheckCircle2, Zap, ShieldCheck, Users2, Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import PromptBox from "@/components/PromptBox";
@@ -20,8 +20,8 @@ const trustItems = [
 ];
 
 export default function HomePage() {
-  const [activeNav, setActiveNav] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const {
       consultants,
       selectedConsultant,
@@ -29,7 +29,6 @@ export default function HomePage() {
 
       chats,
       selectedChat,
-      setSelectedChat,
       loadConversation,
 
       message,
@@ -38,11 +37,28 @@ export default function HomePage() {
       handleSendMessage,
 
       messages,
-      setMessages,
 
       loading,
+      conversationLoading,
+      conversationId,
       handleNewChat,
+      activeNav,
+      setActiveNav,
     } = useChat();
+
+  // Scroll once after a new conversation finishes loading
+  useEffect(() => {
+    if (conversationId) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [conversationId]);
+
+  // Scroll after each new message during an active chat session
+  useEffect(() => {
+    if (!conversationLoading && messages.length > 0) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, conversationLoading]);
 
   return (
     <div className="flex h-full bg-[#FAFAFA]">
@@ -61,6 +77,7 @@ export default function HomePage() {
             setSidebarOpen(false);
           }}
           onNewChat={handleNewChat}
+          conversationLoading={conversationLoading}
         />
 
       <div className="flex flex-1 flex-col lg:ml-[280px] min-h-full">
@@ -90,7 +107,7 @@ export default function HomePage() {
                 Your Personal AI Consultant
               </h1>
 
-              <p className="mt-2 text-sm text-[#6B7280] leading-relaxed max-w-[480px]">
+              <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
                 Get specialized AI guidance in Homeopathy, Ayurveda, Allopathy, and Yoga—all in one place. Choose your preferred medical approach and receive personalized, intelligent assistance within seconds.
               </p>
 
@@ -113,7 +130,9 @@ export default function HomePage() {
             <ChatMessages
               messages={messages}
               loading={loading}
+              conversationLoading={conversationLoading}
             />
+            <div ref={bottomRef} />
             </div>
 
             {/* Prompt Box + Consultant Selector */}

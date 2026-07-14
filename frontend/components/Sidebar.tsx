@@ -23,6 +23,7 @@ interface SidebarProps {
   selectedChat: Chat | null;
   onSelectChat: (chat: Chat) => void;
   onNewChat: () => void;
+  conversationLoading: boolean;
 }
 
 const navItems = [
@@ -31,7 +32,7 @@ const navItems = [
   { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
 ];
 
-export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, selectedChat, onSelectChat, onNewChat }: SidebarProps) {
+export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, selectedChat, onSelectChat, onNewChat, conversationLoading }: SidebarProps) {
   return (
     <>
       {open && (
@@ -100,10 +101,11 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, 
           <div className="space-y-1">
             {chats.map((chat) => (
               <button
+                disabled={conversationLoading}
                 key={chat.id}
                 onClick={() => onSelectChat(chat)}
                 className={cn(
-                  "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                  "w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors",
                   selectedChat?.id === chat.id
                     ? "bg-[#FFF7ED] text-[#F97316]"
                     : "text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#111827]"

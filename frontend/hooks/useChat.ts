@@ -34,8 +34,10 @@ export const useChat = () => {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [conversationLoading, setConversationLoading] = useState(false);
   const [activeNav, setActiveNavState] = useState<string>("home");
 
   useEffect(() => {
@@ -69,22 +71,24 @@ export const useChat = () => {
   // load conversation
   const loadConversation = async (chat: Chat) => {
     try {
-      setLoading(true);
+      setConversationLoading(true);
+      setSelectedChat(chat);
 
       const data = await getChatMessages(chat.id);
 
-      setSelectedChat(chat);
       setMessages(data);
+      setConversationId(chat.id);
     } catch (error) {
       console.error(error);
     } finally {
-      setLoading(false);
+      setConversationLoading(false);
     }
   };
 
   const handleNewChat = () => {
     setSelectedChat(null);
     setMessages([]);
+    setConversationId(null);
     setActiveNav("home");
   };
 
@@ -158,10 +162,11 @@ export const useChat = () => {
     setMessages,
 
     loading,
+    conversationLoading,
+    conversationId,
     handleSendMessage,
 
-    handleNewChat
-    ,
+    handleNewChat,
     activeNav,
     setActiveNav
   };
