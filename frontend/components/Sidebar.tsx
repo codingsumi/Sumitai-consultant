@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Chat } from "@/hooks/useChat";
+import Image from "next/image";
 
 interface SidebarProps {
   activeNav: string;
@@ -48,8 +49,14 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, 
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F97316]">
-              <Sparkles className="h-4 w-4 text-white" />
+            <div className="flex items-center justify-center rounded-lg">
+              {/* <Sparkles className=" text-white" /> */}
+              <Image
+               src="/images/sumitai-logo.png"
+               height={30}
+               width={30}
+               alt="Sumit AI"
+              />
             </div>
             <span className="text-[15px] font-bold text-[#111827] tracking-tight">
               Sumit AI
@@ -74,7 +81,7 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, 
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 space-y-0.5">
+        <nav className="px-3 space-y-0.5">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
