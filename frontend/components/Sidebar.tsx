@@ -42,7 +42,7 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, 
 
       <aside
         className={cn(
-          "fixed top-0 left-0 z-30 h-full w-[280px] flex flex-col border-r border-[#E5E7EB] bg-white transition-transform duration-200",
+          "fixed top-0 left-0 z-30 h-full w-[320px] flex flex-col border-r border-[#ECEEF2] bg-[##FCFCFD] transition-transform duration-200",
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
@@ -52,10 +52,10 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, 
             <div className="flex items-center justify-center rounded-lg">
               {/* <Sparkles className=" text-white" /> */}
               <Image
-               src="/images/sumitai-logo.png"
-               height={30}
-               width={30}
-               alt="Sumit AI"
+                src="/images/sumitai-logo.png"
+                height={30}
+                width={30}
+                alt="Sumit AI"
               />
             </div>
             <span className="text-[15px] font-bold text-[#111827] tracking-tight">
@@ -72,24 +72,25 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, 
 
         {/* New Chat */}
         <div className="px-4 pb-4">
-          <button 
-          onClick={onNewChat}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#EA580C]">
+          <button
+            onClick={onNewChat}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r to-[#F97316] from-[#EC4899] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:opacity-90 shadow-md">
             <Plus className="h-4 w-4" />
             New Chat
           </button>
+
         </div>
 
         {/* Nav */}
-        <nav className="px-3 space-y-0.5">
+        <nav className="mb-2 px-3 space-y-0.5">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => onNavChange(id)}
               className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "cursor-pointer flex w-full items-center gap-3 rounded-lg mb-1 px-3 py-2.5 text-sm font-medium transition-colors",
                 activeNav === id
-                  ? "bg-[#FFF7ED] text-[#F97316]"
+                  ? "bg-[#FFF7ED] text-[#F97316] border border-[#ffedd7]"
                   : "text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#111827]"
               )}
             >
@@ -112,12 +113,13 @@ export default function Sidebar({ activeNav, onNavChange, open, onClose, chats, 
                 key={chat.id}
                 onClick={() => onSelectChat(chat)}
                 className={cn(
-                  "w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                  "flex w-full items-center gap-3 cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors",
                   selectedChat?.id === chat.id
                     ? "bg-[#FFF7ED] text-[#F97316]"
                     : "text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#111827]"
                 )}
               >
+                <Sparkles className="p-1 text-white bg-amber-700" />
                 <p className="truncate">{chat.title}</p>
               </button>
             ))}
