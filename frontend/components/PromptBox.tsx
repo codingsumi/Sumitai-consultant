@@ -1,10 +1,10 @@
 "use client";
 
 import { memo, useEffect, useRef } from "react";
-import { PillBottle, Atom, Tablets, Leaf, Apple, Brain, Stethoscope } from "lucide-react";
+import { PillBottle, Atom, Tablets, Leaf, Apple, Brain, Stethoscope, Paperclip, Mic, SendHorizonal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const MAX_HEIGHT = 200;
+const MAX_HEIGHT = 180;
 
 const iconMap: Record<string, React.ElementType> = {
   homeopathy: PillBottle,
@@ -35,7 +35,6 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composingRef = useRef(false);
 
-  // Resize textarea whenever message changes (including reset to empty)
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -52,9 +51,12 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
     }
   };
 
+  const canSend = message.trim().length > 0 && !loading;
+
   return (
     <div className="w-full space-y-3">
-      <div className="w-full rounded-2xl border border-[#FED7AA] bg-white shadow-sm focus-within:border-[#F97316] focus-within:shadow-[0_0_0_3px_rgba(249,115,22,0.07)] transition-all duration-200">
+      {/* Input bar */}
+      <div className="hero-search flex items-end gap-3 rounded-[20px] border border-[#ECEEF2] bg-white px-5 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-200">
         <textarea
           ref={textareaRef}
           value={message}
@@ -63,9 +65,32 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
           onKeyDown={handleKeyDown}
           onCompositionStart={() => { composingRef.current = true; }}
           onCompositionEnd={() => { composingRef.current = false; }}
-          placeholder="Ask your question..."
-          className="w-full resize-none bg-transparent px-5 py-4 text-[15px] text-[#111827] placeholder:text-[#9CA3AF] outline-none leading-relaxed"
+          placeholder="Ask your health question..."
+          className="flex-1 resize-none bg-transparent py-1 text-[15px] text-[#101828] placeholder:text-[#9AA4B2] outline-none leading-relaxed"
         />
+        <div className="flex items-center gap-1.5 pb-0.5">
+          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#667085] transition-all duration-200">
+            <Paperclip className="h-4 w-4" />
+          </button>
+          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#667085] transition-all duration-200">
+            <Mic className="h-4 w-4" />
+          </button>
+          <button
+            onClick={onSend}
+            disabled={!canSend}
+            className="flex h-9 w-9 items-center justify-center rounded-[12px] text-white transition-all duration-200 disabled:opacity-35 hover:scale-105 active:scale-95"
+            style={{
+              background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
+              boxShadow: canSend ? "0 4px 12px rgba(255,122,0,0.38)" : "none",
+            }}
+          >
+            {loading ? (
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <SendHorizonal className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Consultant pill selector */}
@@ -77,13 +102,21 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
               key={id}
               onClick={() => onConsultantChange(slug)}
               className={cn(
-                "flex items-center gap-3 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200 cursor-pointer",
+                "flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 cursor-pointer",
                 selectedConsultant === slug
-                  ? "bg-[#F97316] text-white shadow-sm shadow-orange-200"
-                  : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#F97316] hover:text-[#F97316]"
+                  ? "text-white shadow-sm"
+                  : "bg-white text-[#667085] border border-[#ECEEF2] hover:border-[#FF7A00] hover:text-[#FF7A00]"
               )}
+              style={
+                selectedConsultant === slug
+                  ? {
+                      background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
+                      boxShadow: "0 2px 8px rgba(255,122,0,0.30)",
+                    }
+                  : {}
+              }
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3.5 w-3.5" />
               {name}
             </button>
           );
