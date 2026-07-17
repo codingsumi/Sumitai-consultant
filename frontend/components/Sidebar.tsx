@@ -265,7 +265,7 @@ export default function Sidebar({
                 </div>
               </div>
 
-              <ul className="space-y-1.5 mb-3">
+              {/* <ul className="space-y-1.5 mb-3">
                 {[
                   "Priority responses",
                   "Advanced reports",
@@ -276,7 +276,7 @@ export default function Sidebar({
                     {item}
                   </li>
                 ))}
-              </ul>
+              </ul> */}
 
               <button
                 className="flex w-full items-center justify-center gap-1.5 rounded-[10px] py-2 text-[12px] font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
