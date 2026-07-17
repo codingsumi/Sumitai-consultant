@@ -8,7 +8,7 @@ CREATE TABLE "Consultant" (
     "tone" TEXT NOT NULL,
     "disclaimer" TEXT NOT NULL,
     "allowedTopics" JSONB NOT NULL,
-    "isAction" BOOLEAN NOT NULL DEFAULT true,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
