@@ -64,7 +64,7 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
         conversationLoading={conversationLoading}
       />
 
-      <div className="flex flex-1 flex-col lg:ml-[280px] min-h-0">
+      <div className="flex flex-1 flex-col lg:ml-[320px] min-h-0">
         {/* Mobile menu trigger */}
         <button
           onClick={() => setSidebarOpen(true)}

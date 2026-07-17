@@ -4,7 +4,7 @@ import { BaseMessage } from "@langchain/core/messages"
 import { Response } from "express"
 
 // create a new chat for a consultant
-export const createChat = async(consultantSlug: string) => {
+export const createChat = async (consultantSlug: string) => {
     const consultant = await prisma.consultant.findFirst({
         where: {
             slug: consultantSlug,
@@ -12,7 +12,7 @@ export const createChat = async(consultantSlug: string) => {
         }
     })
 
-    if(!consultant) {
+    if (!consultant) {
         throw new Error("Consultant not found")
     }
 
@@ -21,14 +21,22 @@ export const createChat = async(consultantSlug: string) => {
             consultantId: consultant.id
         },
         select: {
-            id: true
+            id: true,
+            // title: true,
+            // createdAt: true,
+            // consultant: {
+            //     select: {
+            //         name: true,
+            //         slug: true
+            //     }
+            // }
         }
     });
 }
 
 
 // send a message to the AI for a specific consultant
-export const sendMessageToAi = async(consultantSlug: string, history: BaseMessage[]) => {
+export const sendMessageToAi = async (consultantSlug: string, history: BaseMessage[]) => {
     const consultant = await prisma.consultant.findFirst({
         where: {
             slug: consultantSlug,
@@ -36,7 +44,7 @@ export const sendMessageToAi = async(consultantSlug: string, history: BaseMessag
         }
     })
 
-    if(!consultant) {
+    if (!consultant) {
         throw new Error("Consultant not found")
     }
 
@@ -48,7 +56,7 @@ export const sendMessageToAi = async(consultantSlug: string, history: BaseMessag
 }
 
 // stream tokens to the client via SSE, returns the full accumulated text
-export const streamMessageToAi = async(
+export const streamMessageToAi = async (
     consultantSlug: string,
     history: BaseMessage[],
     res: Response
@@ -75,7 +83,7 @@ export const streamMessageToAi = async(
 }
 
 // chat list
-export const chatList = async() => {
+export const chatList = async () => {
     return await prisma.chat.findMany({
         select: {
             id: true,
