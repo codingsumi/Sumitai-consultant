@@ -161,8 +161,7 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
     conversationLoading,
     chatSwitching,
     handleNewChat,
-    activeNav,
-    setActiveNav,
+    chatStarted,
   } = useChat({ initialChatId, initialConsultantSlug });
 
   const hasMessages = messages.length > 0 || conversationLoading;
@@ -191,8 +190,6 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
       <div className="blob-purple" />
 
       <Sidebar
-        activeNav={activeNav}
-        onNavChange={(id) => { setActiveNav(id); setSidebarOpen(false); }}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         chats={chats}
@@ -242,6 +239,7 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
                   onMessageChange={setMessage}
                   onSend={handleSendMessage}
                   loading={isStreaming}
+                  chatStarted={chatStarted}
                 />
                 <p className="mt-2 text-center text-[11px] text-[#C4CAD4]">
                   Sumit AI can make mistakes. Please verify important information.
@@ -339,8 +337,8 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
                   </div>
                 </div>
 
-                {/* Consultant pill selector */}
-                {consultants.length > 0 && (
+                {/* Consultant pill selector — hidden once chat has started */}
+                {!chatStarted && consultants.length > 0 && (
                   <div className="flex items-center justify-center gap-2 flex-wrap">
                     {consultants.map(({ id, slug, name }) => {
                       const iconMap: Record<string, React.ElementType> = {

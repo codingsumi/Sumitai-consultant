@@ -3,6 +3,9 @@ import { useRouter } from "next/navigation";
 import { getConsultants } from "@/services/consultant.service";
 import { createChat, streamMessage, getChats, getChatMessages } from "@/services/chat.service";
 
+// Module-level consultant cache
+let consultantCache: Consultant[] | null = null;
+
 export interface Consultant {
   id: string;
   name: string;
@@ -50,7 +53,7 @@ export const useChat = (options: UseChatOptions = {}) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationLoading, setConversationLoading] = useState(false);
   const [chatSwitching, setChatSwitching] = useState(!!initialChatId);
-  const [activeNav, setActiveNavState] = useState<string>("home");
+  const [chatStarted, setChatStarted] = useState(!!initialChatId);
 
   const abortRef = useRef<AbortController | null>(null);
   const tokenBufferRef = useRef("");
@@ -104,7 +107,7 @@ export const useChat = (options: UseChatOptions = {}) => {
     const initialize = async () => {
       try {
         const [fetchedConsultants, fetchedChats] = await Promise.all([
-          getConsultants(),
+          consultantCache ? Promise.resolve(consultantCache) : getConsultants().then((d) => { consultantCache = d; return d; }),
           loadChats(),
         ]);
         setConsultants(fetchedConsultants);
@@ -118,7 +121,6 @@ export const useChat = (options: UseChatOptions = {}) => {
           const match = (fetchedChats as Chat[]).find((c) => c.id === initialChatId);
           if (match) {
             await loadConversation(match, true);
-            setActiveNavState("chats");
           } else {
             setChatSwitching(false);
           }
@@ -133,7 +135,7 @@ export const useChat = (options: UseChatOptions = {}) => {
   const handleSelectChat = useCallback(async (chat: Chat) => {
     window.history.replaceState(null, "", `/chat/${chat.consultant.slug}/${chat.id}`);
     await loadConversation(chat, true);
-    setActiveNavState("chats");
+    setChatStarted(true);
   }, [loadConversation]);
 
   const handleNewChat = useCallback(() => {
@@ -144,11 +146,9 @@ export const useChat = (options: UseChatOptions = {}) => {
     setMessages([]);
     setConversationId(null);
     setIsStreaming(false);
-    setActiveNavState("home");
+    setChatStarted(false);
     router.push("/", { scroll: false });
   }, [router]);
-
-  const setActiveNav = (nav: string) => setActiveNavState(nav);
 
   // Accept optional overrides so callers can pass fresh values without relying on state timing
   const handleSendMessage = useCallback(async (overrideText?: string, overrideConsultant?: string) => {
@@ -168,6 +168,7 @@ export const useChat = (options: UseChatOptions = {}) => {
       window.history.replaceState(null, "", `/chat/${chat.consultant.slug}/${chat.id}`);
       setSelectedChat(chat);
       setConversationId(chat.id);
+      setChatStarted(true);
     }
 
     const chatId = currentChat!.id;
@@ -260,7 +261,6 @@ export const useChat = (options: UseChatOptions = {}) => {
     conversationId,
     handleSendMessage,
     handleNewChat,
-    activeNav,
-    setActiveNav,
+    chatStarted,
   };
 };

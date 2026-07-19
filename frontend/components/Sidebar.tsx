@@ -2,9 +2,6 @@
 
 import {
   Plus,
-  Home,
-  MessageSquare,
-  Bookmark,
   Settings,
   ChevronRight,
   X,
@@ -16,8 +13,6 @@ import { Chat } from "@/hooks/useChat";
 import Image from "next/image";
 
 interface SidebarProps {
-  activeNav: string;
-  onNavChange: (item: string) => void;
   open: boolean;
   onClose: () => void;
   chats: Chat[];
@@ -26,12 +21,6 @@ interface SidebarProps {
   onNewChat: () => void;
   conversationLoading: boolean;
 }
-
-const navItems = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "chats", label: "Chats", icon: MessageSquare },
-  { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
-];
 
 const chatIconColors = [
   "bg-gradient-to-br from-orange-400 to-pink-500",
@@ -50,8 +39,6 @@ function relativeTime(dateStr: string): string {
 }
 
 export default function Sidebar({
-  activeNav,
-  onNavChange,
   open,
   onClose,
   chats,
@@ -143,33 +130,6 @@ export default function Sidebar({
             New Chat
           </button>
         </div>
-
-        {/* ── Navigation ───────────────────────────────── */}
-        <nav className="px-3 space-y-1">
-          {navItems.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => onNavChange(id)}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-[12px] px-3.5 py-2.5 text-sm font-medium transition-all duration-200",
-                activeNav === id
-                  ? "bg-[#FFF4EC] text-[#101828]"
-                  : "text-[#667085] hover:bg-[#F7F8FA] hover:text-[#101828]"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-[18px] w-[18px] shrink-0 transition-colors duration-200",
-                  activeNav === id ? "text-[#FF7A00]" : "text-[#9AA4B2]"
-                )}
-              />
-              {label}
-            </button>
-          ))}
-        </nav>
-
-        {/* ── Divider ──────────────────────────────────── */}
-        <div className="mx-4 my-4 h-px bg-[#ECEEF2]" />
 
         {/* ── Recent Chats ─────────────────────────────── */}
         <div className="flex-1 overflow-y-auto px-3 min-h-0">

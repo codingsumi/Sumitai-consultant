@@ -29,9 +29,10 @@ interface PromptBoxProps {
   onMessageChange: (value: string) => void;
   loading: boolean;
   onSend: () => void;
+  chatStarted?: boolean;
 }
 
-function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange, loading, onSend }: PromptBoxProps) {
+function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange, loading, onSend, chatStarted }: PromptBoxProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composingRef = useRef(false);
 
@@ -93,35 +94,37 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
         </div>
       </div>
 
-      {/* Consultant pill selector */}
-      <div className="flex items-center justify-center gap-2 flex-wrap">
-        {consultants.map(({ id, slug, name }) => {
-          const Icon = iconMap[slug] ?? Stethoscope;
-          return (
-            <button
-              key={id}
-              onClick={() => onConsultantChange(slug)}
-              className={cn(
-                "flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 cursor-pointer",
-                selectedConsultant === slug
-                  ? "text-white shadow-sm"
-                  : "bg-white text-[#667085] border border-[#ECEEF2] hover:border-[#FF7A00] hover:text-[#FF7A00]"
-              )}
-              style={
-                selectedConsultant === slug
-                  ? {
-                      background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
-                      boxShadow: "0 2px 8px rgba(255,122,0,0.30)",
-                    }
-                  : {}
-              }
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {name}
-            </button>
-          );
-        })}
-      </div>
+      {/* Consultant pill selector — hidden once chat has started */}
+      {!chatStarted && (
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          {consultants.map(({ id, slug, name }) => {
+            const Icon = iconMap[slug] ?? Stethoscope;
+            return (
+              <button
+                key={id}
+                onClick={() => onConsultantChange(slug)}
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 cursor-pointer",
+                  selectedConsultant === slug
+                    ? "text-white shadow-sm"
+                    : "bg-white text-[#667085] border border-[#ECEEF2] hover:border-[#FF7A00] hover:text-[#FF7A00]"
+                )}
+                style={
+                  selectedConsultant === slug
+                    ? {
+                        background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
+                        boxShadow: "0 2px 8px rgba(255,122,0,0.30)",
+                      }
+                    : {}
+                }
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {name}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
