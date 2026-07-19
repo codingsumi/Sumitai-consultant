@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+});
+
+const ibmPlexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  variable: "--font-ibm-plex",
   weight: ["400", "500", "600", "700"],
 });
 
@@ -23,7 +29,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jakarta.variable} h-full`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${jakarta.variable} ${ibmPlexSans.variable} h-full`} suppressHydrationWarning>
       <body className={`h-full font-[var(--font-inter)] antialiased`} suppressHydrationWarning>{children}</body>
     </html>
   );

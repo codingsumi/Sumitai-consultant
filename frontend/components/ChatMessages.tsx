@@ -10,7 +10,7 @@ const MessageRow = memo(
     <div className={cn("flex", msg.role === "human" ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-4 py-2 text-sm leading-7",
+          "chat-message max-w-[80%] rounded-2xl px-4 py-2",
           msg.role === "human"
             ? "bg-[#F97316] text-white"
             : "bg-white border border-[#E5E7EB] text-[#111827]"
@@ -42,50 +42,79 @@ interface ChatMessagesProps {
   conversationLoading: boolean;
 }
 
+function getScrollRoot(el: HTMLElement | null): HTMLElement | null {
+  return (el?.closest("[data-scroll-root]") as HTMLElement) ?? null;
+}
+
+function isNearBottom(el: HTMLElement, threshold = 80): boolean {
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+}
+
+function scrollToBottom(el: HTMLElement, behavior: ScrollBehavior = "smooth") {
+  el.scrollTo({ top: el.scrollHeight, behavior });
+}
+
 export default function ChatMessages({ messages, isStreaming, conversationLoading }: ChatMessagesProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const userScrolledUpRef = useRef(false);
-  const scrollRafRef = useRef<number | null>(null);
   const prevLoadingRef = useRef(conversationLoading);
+  const prevMessageCountRef = useRef(messages.length);
 
-  // Track scroll position on the nearest scrollable ancestor
+  // Track whether user has scrolled away from the bottom
   useEffect(() => {
-    const el = bottomRef.current?.closest("[data-scroll-root]") as HTMLElement | null;
+    const el = getScrollRoot(bottomRef.current);
     if (!el) return;
     const onScroll = () => {
-      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-      userScrolledUpRef.current = dist > 80;
+      userScrolledUpRef.current = !isNearBottom(el);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Auto-scroll on new tokens, throttled to one rAF per frame
-  useEffect(() => {
-    if (userScrolledUpRef.current) return;
-    if (scrollRafRef.current !== null) return;
-    scrollRafRef.current = requestAnimationFrame(() => {
-      scrollRafRef.current = null;
-      if (!userScrolledUpRef.current) {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-      }
-    });
-  }, [messages]);
-
-  // Jump to bottom BEFORE paint when a conversation finishes loading (no visible scroll)
+  // When a conversation finishes loading, jump instantly before paint
   useLayoutEffect(() => {
     if (prevLoadingRef.current && !conversationLoading) {
-      userScrolledUpRef.current = false;
-      bottomRef.current?.scrollIntoView({ behavior: "instant" });
+      const el = getScrollRoot(bottomRef.current);
+      if (el) {
+        userScrolledUpRef.current = false;
+        scrollToBottom(el, "instant");
+      }
     }
     prevLoadingRef.current = conversationLoading;
   }, [conversationLoading]);
 
+  // When a new message is added (user sends), force-scroll regardless of position
+  useLayoutEffect(() => {
+    const prev = prevMessageCountRef.current;
+    const curr = messages.length;
+    prevMessageCountRef.current = curr;
+
+    if (curr > prev) {
+      const el = getScrollRoot(bottomRef.current);
+      if (el) {
+        userScrolledUpRef.current = false;
+        scrollToBottom(el, "smooth");
+      }
+    }
+  }, [messages.length]);
+
+  // During streaming, use a MutationObserver on the scroll container so we
+  // react to actual DOM height changes (not batched React state) and keep
+  // the viewport pinned to the bottom in real time.
   useEffect(() => {
-    return () => {
-      if (scrollRafRef.current !== null) cancelAnimationFrame(scrollRafRef.current);
-    };
-  }, []);
+    if (!isStreaming) return;
+    const el = getScrollRoot(bottomRef.current);
+    if (!el) return;
+
+    const observer = new MutationObserver(() => {
+      if (!userScrolledUpRef.current) {
+        scrollToBottom(el, "instant");
+      }
+    });
+
+    observer.observe(el, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [isStreaming]);
 
   if (messages.length === 0 && !conversationLoading) return null;
 
