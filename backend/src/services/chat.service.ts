@@ -1,7 +1,7 @@
 import prisma from "../config/prisma"
 import { createConsultantChain, createStreamingConsultantChain } from "../ai/chain.factory"
-import { buildSystemPrompt } from "../ai/promptLoader"
-import { BaseMessage } from "@langchain/core/messages"
+import { isQueryRelevant, buildRedirectResponse } from "../ai/domainGuard"
+import { BaseMessage, HumanMessage } from "@langchain/core/messages"
 import { Response } from "express"
 
 // create a new chat for a consultant
@@ -35,6 +35,14 @@ export const createChat = async (consultantSlug: string) => {
     });
 }
 
+const getLastUserQuery = (history: BaseMessage[]): string => {
+    for (let i = history.length - 1; i >= 0; i--) {
+        if (history[i] instanceof HumanMessage) {
+            return history[i].content as string;
+        }
+    }
+    return "";
+};
 
 // send a message to the AI for a specific consultant
 export const sendMessageToAi = async (consultantSlug: string, history: BaseMessage[]) => {
@@ -49,7 +57,16 @@ export const sendMessageToAi = async (consultantSlug: string, history: BaseMessa
         throw new Error("Consultant not found")
     }
 
-    const chain = await createConsultantChain(buildSystemPrompt(consultantSlug));
+    const allowedTopics = consultant.allowedTopics as string[];
+    const userQuery = getLastUserQuery(history);
+
+    const relevant = await isQueryRelevant(userQuery, consultant.name, allowedTopics);
+    if (!relevant) {
+        const redirectText = buildRedirectResponse(consultant.name, allowedTopics);
+        return { answer: redirectText, disclaimer: "", followUpQuestions: [] };
+    }
+
+    const chain = await createConsultantChain(consultant.systemPrompt);
 
     return await chain.invoke({
         messages: history
@@ -57,6 +74,7 @@ export const sendMessageToAi = async (consultantSlug: string, history: BaseMessa
 }
 
 // stream tokens to the client via SSE, returns the full accumulated text
+// NOTE: domain guard is handled by the controller BEFORE this is called
 export const streamMessageToAi = async (
     consultantSlug: string,
     history: BaseMessage[],
@@ -68,7 +86,7 @@ export const streamMessageToAi = async (
 
     if (!consultant) throw new Error("Consultant not found");
 
-    const chain = createStreamingConsultantChain(buildSystemPrompt(consultantSlug));
+    const chain = createStreamingConsultantChain(consultant.systemPrompt);
     const stream = await chain.stream({ messages: history });
 
     let fullText = "";
