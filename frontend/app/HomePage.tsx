@@ -18,6 +18,11 @@ import {
   Paperclip,
   Mic,
   SendHorizonal,
+  BotMessageSquare,
+  Lock,
+  PillBottle,
+  Atom,
+  Tablets,
 } from "lucide-react";
 import Image from "next/image";
 import Sidebar from "@/components/Sidebar";
@@ -28,9 +33,9 @@ import ChatMessages from "@/components/ChatMessages";
 /* ── Data ─────────────────────────────────────────────────────── */
 
 const heroBadges = [
-  { emoji: "👨‍⚕️", label: "Multiple AI Experts" },
-  { emoji: "⚡", label: "Instant Guidance" },
-  { emoji: "🔒", label: "Secure & Private" },
+  { icon: BotMessageSquare, color: "bg-orange-50", iconColor: "text-[#FF7A00]", label: "Multiple AI Experts" },
+  { icon: Zap, color: "bg-blue-50", iconColor: "text-blue-600", label: "Instant Guidance" },
+  { icon: Lock, color: "bg-amber-50", iconColor: "text-amber-600", label: "Secure & Private" },
 ];
 
 const quickActions = [
@@ -164,20 +169,18 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
   /* Send from hero search bar */
   const handleHeroSend = () => {
     if (!heroQuery.trim()) return;
-    setMessage(heroQuery);
+    const text = heroQuery;
     setHeroQuery("");
-    setTimeout(() => handleSendMessage(), 0);
+    handleSendMessage(text);
   };
 
   const handleQuickAction = (slug: string, title: string) => {
     setSelectedConsultant(slug);
-    setMessage(`Tell me about ${title}`);
-    setTimeout(() => handleSendMessage(), 0);
+    handleSendMessage(`Tell me about ${title}`, slug);
   };
 
   const handlePopularQuestion = (label: string) => {
-    setMessage(label);
-    setTimeout(() => handleSendMessage(), 0);
+    handleSendMessage(label);
   };
 
   return (
@@ -269,27 +272,29 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
               {/* Subtitle */}
               <p
                 className="mx-auto mt-4 text-center text-[#667085] leading-[1.7]"
-                style={{ maxWidth: 660, fontSize: 16 }}
+                style={{ maxWidth: 660, fontSize: 13 }}
               >
                 Get personalized AI guidance across Homeopathy, Ayurveda, Allopathy, Yoga, Nutrition and Mental Wellness.
               </p>
 
               {/* Feature badges */}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                {heroBadges.map(({ emoji, label }) => (
+                {heroBadges.map(({ icon: Icon, color, iconColor, label }) => (
                   <span
                     key={label}
                     className="flex items-center gap-2 rounded-full border border-[#ECEEF2] bg-white px-4 text-sm font-medium text-[#344054] shadow-sm"
                     style={{ height: 40 }}
                   >
-                    <span>{emoji}</span>
+                    <div className={`flex h-5 w-5 items-center justify-center rounded-[12px] ${color}`}>
+                      <Icon className={`h-4 w-4 ${iconColor}`} />
+                    </div>
                     {label}
                   </span>
                 ))}
               </div>
 
               {/* ── Hero Search Bar ──────────────────────────── */}
-              <div className="mt-8">
+              <div className="mt-8 space-y-3">
                 <div
                   className="hero-search flex items-center gap-3 rounded-[22px] border border-[#ECEEF2] bg-white px-5 shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-all duration-200"
                   style={{ height: 72 }}
@@ -323,6 +328,35 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
                     </button>
                   </div>
                 </div>
+
+                {/* Consultant pill selector */}
+                {consultants.length > 0 && (
+                  <div className="flex items-center justify-center gap-2 flex-wrap">
+                    {consultants.map(({ id, slug, name }) => {
+                      const iconMap: Record<string, React.ElementType> = {
+                        homeopathy: PillBottle, yoga: Atom, allopathy: Tablets,
+                        ayurvedic: Leaf, nutrition: Apple, "mental-wellness": Brain,
+                      };
+                      const Icon = iconMap[slug] ?? Stethoscope;
+                      const active = selectedConsultant === slug;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => setSelectedConsultant(slug)}
+                          className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 cursor-pointer ${
+                            active
+                              ? "text-white shadow-sm"
+                              : "bg-white text-[#667085] border border-[#ECEEF2] hover:border-[#FF7A00] hover:text-[#FF7A00]"
+                          }`}
+                          style={active ? { background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)", boxShadow: "0 2px 8px rgba(255,122,0,0.30)" } : {}}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          {name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* ── Quick Actions ────────────────────────────── */}

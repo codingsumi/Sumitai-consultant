@@ -199,7 +199,7 @@ export default function Sidebar({
                     chatIconColors[i % chatIconColors.length]
                   )}
                 >
-                  {chat.title.charAt(0).toUpperCase()}
+                  {(chat.title ?? "?").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p
@@ -210,7 +210,7 @@ export default function Sidebar({
                         : "text-[#101828] group-hover:text-[#101828]"
                     )}
                   >
-                    {chat.title}
+                    {chat.title ?? "New Chat"}
                   </p>
                   <p className="mt-0.5 text-[11px] text-[#9AA4B2]">
                     {relativeTime(chat.createdAt)}

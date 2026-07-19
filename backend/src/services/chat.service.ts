@@ -22,14 +22,14 @@ export const createChat = async (consultantSlug: string) => {
         },
         select: {
             id: true,
-            // title: true,
-            // createdAt: true,
-            // consultant: {
-            //     select: {
-            //         name: true,
-            //         slug: true
-            //     }
-            // }
+            title: true,
+            createdAt: true,
+            consultant: {
+                select: {
+                    name: true,
+                    slug: true
+                }
+            }
         }
     });
 }

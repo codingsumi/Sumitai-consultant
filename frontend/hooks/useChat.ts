@@ -54,9 +54,18 @@ export const useChat = (options: UseChatOptions = {}) => {
   const abortRef = useRef<AbortController | null>(null);
   const tokenBufferRef = useRef("");
   const rafRef = useRef<number | null>(null);
-  const streamingIdRef = useRef<string | null>(null);
-  // Prevent double-loading on StrictMode double-invoke
+  // Keep refs in sync for use inside async callbacks
+  const selectedConsultantRef = useRef(selectedConsultant);
+  const selectedChatRef = useRef<Chat | null>(null);
   const initialLoadDoneRef = useRef(false);
+
+  useEffect(() => {
+    selectedConsultantRef.current = selectedConsultant;
+  }, [selectedConsultant]);
+
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
 
   const loadChats = useCallback(async () => {
     try {
@@ -84,7 +93,6 @@ export const useChat = (options: UseChatOptions = {}) => {
     }
   }, []);
 
-  // On mount: load consultants + chats, then restore conversation from URL if present
   useEffect(() => {
     if (initialLoadDoneRef.current) return;
     initialLoadDoneRef.current = true;
@@ -96,6 +104,11 @@ export const useChat = (options: UseChatOptions = {}) => {
           loadChats(),
         ]);
         setConsultants(fetchedConsultants);
+
+        // Set default selected consultant to first from DB if no initial slug
+        if (!initialConsultantSlug && fetchedConsultants.length > 0) {
+          setSelectedConsultant(fetchedConsultants[0].slug);
+        }
 
         if (initialChatId) {
           const match = (fetchedChats as Chat[]).find((c) => c.id === initialChatId);
@@ -109,17 +122,13 @@ export const useChat = (options: UseChatOptions = {}) => {
       }
     };
     initialize();
-  }, [initialChatId, loadChats, loadConversation]);
-
-  const navigateToChat = useCallback((chat: Chat) => {
-    router.push(`/chat/${chat.consultant.slug}/${chat.id}`, { scroll: false });
-  }, [router]);
+  }, [initialChatId, initialConsultantSlug, loadChats, loadConversation]);
 
   const handleSelectChat = useCallback(async (chat: Chat) => {
-    navigateToChat(chat);
+    router.replace(`/chat/${chat.consultant.slug}/${chat.id}`, { scroll: false });
     await loadConversation(chat);
     setActiveNavState("chats");
-  }, [navigateToChat, loadConversation]);
+  }, [router, loadConversation]);
 
   const handleNewChat = useCallback(() => {
     abortRef.current?.abort();
@@ -128,37 +137,36 @@ export const useChat = (options: UseChatOptions = {}) => {
     setSelectedChat(null);
     setMessages([]);
     setConversationId(null);
+    setIsStreaming(false);
     setActiveNavState("home");
-    router.push("/chat", { scroll: false });
+    router.push("/", { scroll: false });
   }, [router]);
 
   const setActiveNav = (nav: string) => setActiveNavState(nav);
 
-  const updateStreamingMessage = useCallback((id: string, patch: Partial<Message>) => {
-    setMessages((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, ...patch } : m))
-    );
-  }, []);
+  // Accept optional overrides so callers can pass fresh values without relying on state timing
+  const handleSendMessage = useCallback(async (overrideText?: string, overrideConsultant?: string) => {
+    const userText = (overrideText ?? message).trim();
+    const consultantSlug = overrideConsultant ?? selectedConsultantRef.current;
 
-  const handleSendMessage = async () => {
-    if (!message.trim() || isStreaming) return;
+    if (!userText || isStreaming) return;
 
-    const userText = message;
     setMessage("");
 
-    let currentChat = selectedChat;
+    let currentChat = selectedChatRef.current;
     if (!currentChat) {
-      const chat = await createChat(selectedConsultant);
+      const chat = await createChat(consultantSlug);
       currentChat = chat;
+      // Update URL first so the route matches before we touch any state.
+      // history.replaceState avoids a Next.js navigation entirely — no remount.
+      window.history.replaceState(null, "", `/chat/${chat.consultant.slug}/${chat.id}`);
       setSelectedChat(chat);
       setConversationId(chat.id);
-      navigateToChat(chat);
     }
 
     const chatId = currentChat!.id;
     const userMsgId = `user-${Date.now()}`;
     const aiMsgId = `ai-${Date.now()}`;
-    streamingIdRef.current = aiMsgId;
     tokenBufferRef.current = "";
 
     setMessages((prev) => [
@@ -216,13 +224,15 @@ export const useChat = (options: UseChatOptions = {}) => {
           if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
           tokenBufferRef.current = "";
           console.error("Stream error:", msg);
-          updateStreamingMessage(aiMsgId, { streaming: false, error: true });
+          setMessages((prev) =>
+            prev.map((m) => m.id === aiMsgId ? { ...m, streaming: false, error: true } : m)
+          );
           setIsStreaming(false);
         },
       },
       abortRef.current.signal
     );
-  };
+  }, [message, isStreaming, loadChats]);
 
   return {
     consultants,
