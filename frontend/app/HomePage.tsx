@@ -159,6 +159,7 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
     messages,
     isStreaming,
     conversationLoading,
+    chatSwitching,
     handleNewChat,
     activeNav,
     setActiveNav,
@@ -213,8 +214,17 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
         {/* Scroll root */}
         <div data-scroll-root className="flex-1 overflow-y-auto min-h-0">
 
-          {/* ── CHAT VIEW ─────────────────────────────────────── */}
-          {hasMessages ? (
+          {/* ── CHAT SWITCHING LOADER ──────────────────── */}
+          {chatSwitching ? (
+            <div className="flex h-full items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#F97316] border-t-transparent" />
+                <p className="text-sm text-[#9AA4B2]">Loading conversation…</p>
+              </div>
+            </div>
+
+          ) : hasMessages ? (
+            /* ── CHAT VIEW ──────────────────────────────── */
             <div className="mx-auto flex min-h-full w-full max-w-[760px] flex-col px-4 py-6 sm:px-8">
               <div className="flex-1">
                 <ChatMessages
@@ -240,7 +250,7 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
             </div>
 
           ) : (
-            /* ── HERO VIEW ──────────────────────────────────── */
+            /* ── HERO VIEW ──────────────────────────────── */
             <div className="mx-auto w-full max-w-[960px] px-6 py-12 sm:py-16">
 
               {/* Logo icon */}

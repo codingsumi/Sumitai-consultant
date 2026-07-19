@@ -49,6 +49,7 @@ export const useChat = (options: UseChatOptions = {}) => {
   );
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationLoading, setConversationLoading] = useState(false);
+  const [chatSwitching, setChatSwitching] = useState(!!initialChatId);
   const [activeNav, setActiveNavState] = useState<string>("home");
 
   const abortRef = useRef<AbortController | null>(null);
@@ -78,9 +79,11 @@ export const useChat = (options: UseChatOptions = {}) => {
     }
   }, []);
 
-  const loadConversation = useCallback(async (chat: Chat) => {
+  const loadConversation = useCallback(async (chat: Chat, switching = false) => {
     try {
+      if (switching) setChatSwitching(true);
       setConversationLoading(true);
+      setMessages([]);
       setSelectedChat(chat);
       setConversationId(chat.id);
       setSelectedConsultant(chat.consultant.slug);
@@ -90,6 +93,7 @@ export const useChat = (options: UseChatOptions = {}) => {
       console.error(error);
     } finally {
       setConversationLoading(false);
+      if (switching) setChatSwitching(false);
     }
   }, []);
 
@@ -113,8 +117,10 @@ export const useChat = (options: UseChatOptions = {}) => {
         if (initialChatId) {
           const match = (fetchedChats as Chat[]).find((c) => c.id === initialChatId);
           if (match) {
-            await loadConversation(match);
+            await loadConversation(match, true);
             setActiveNavState("chats");
+          } else {
+            setChatSwitching(false);
           }
         }
       } catch (error) {
@@ -125,10 +131,10 @@ export const useChat = (options: UseChatOptions = {}) => {
   }, [initialChatId, initialConsultantSlug, loadChats, loadConversation]);
 
   const handleSelectChat = useCallback(async (chat: Chat) => {
-    router.replace(`/chat/${chat.consultant.slug}/${chat.id}`, { scroll: false });
-    await loadConversation(chat);
+    window.history.replaceState(null, "", `/chat/${chat.consultant.slug}/${chat.id}`);
+    await loadConversation(chat, true);
     setActiveNavState("chats");
-  }, [router, loadConversation]);
+  }, [loadConversation]);
 
   const handleNewChat = useCallback(() => {
     abortRef.current?.abort();
@@ -250,6 +256,7 @@ export const useChat = (options: UseChatOptions = {}) => {
     setMessages,
     isStreaming,
     conversationLoading,
+    chatSwitching,
     conversationId,
     handleSendMessage,
     handleNewChat,

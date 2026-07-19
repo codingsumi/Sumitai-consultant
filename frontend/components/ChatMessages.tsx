@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useLayoutEffect, useRef } from "react";
 import { Message } from "@/hooks/useChat";
 import { cn } from "@/lib/utils";
 import MarkdownRenderer from "./MarkdownRenderer";
@@ -46,6 +46,7 @@ export default function ChatMessages({ messages, isStreaming, conversationLoadin
   const bottomRef = useRef<HTMLDivElement>(null);
   const userScrolledUpRef = useRef(false);
   const scrollRafRef = useRef<number | null>(null);
+  const prevLoadingRef = useRef(conversationLoading);
 
   // Track scroll position on the nearest scrollable ancestor
   useEffect(() => {
@@ -71,11 +72,13 @@ export default function ChatMessages({ messages, isStreaming, conversationLoadin
     });
   }, [messages]);
 
-  // Jump to bottom instantly when a conversation finishes loading
-  useEffect(() => {
-    if (conversationLoading) return;
-    userScrolledUpRef.current = false;
-    bottomRef.current?.scrollIntoView({ behavior: "instant" });
+  // Jump to bottom BEFORE paint when a conversation finishes loading (no visible scroll)
+  useLayoutEffect(() => {
+    if (prevLoadingRef.current && !conversationLoading) {
+      userScrolledUpRef.current = false;
+      bottomRef.current?.scrollIntoView({ behavior: "instant" });
+    }
+    prevLoadingRef.current = conversationLoading;
   }, [conversationLoading]);
 
   useEffect(() => {
@@ -88,16 +91,9 @@ export default function ChatMessages({ messages, isStreaming, conversationLoadin
 
   return (
     <div className="relative space-y-6 mt-6">
-      {conversationLoading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#FAFAFA]/70">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#F97316] border-t-transparent" />
-        </div>
-      )}
-
       {messages.map((msg) => (
         <MessageRow key={msg.id} msg={msg} />
       ))}
-
       <div ref={bottomRef} />
     </div>
   );
