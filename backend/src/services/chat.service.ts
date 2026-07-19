@@ -1,5 +1,6 @@
 import prisma from "../config/prisma"
 import { createConsultantChain, createStreamingConsultantChain } from "../ai/chain.factory"
+import { buildSystemPrompt } from "../ai/promptLoader"
 import { BaseMessage } from "@langchain/core/messages"
 import { Response } from "express"
 
@@ -48,7 +49,7 @@ export const sendMessageToAi = async (consultantSlug: string, history: BaseMessa
         throw new Error("Consultant not found")
     }
 
-    const chain = await createConsultantChain(consultant.systemPrompt);
+    const chain = await createConsultantChain(buildSystemPrompt(consultantSlug));
 
     return await chain.invoke({
         messages: history
@@ -67,7 +68,7 @@ export const streamMessageToAi = async (
 
     if (!consultant) throw new Error("Consultant not found");
 
-    const chain = createStreamingConsultantChain(consultant.systemPrompt);
+    const chain = createStreamingConsultantChain(buildSystemPrompt(consultantSlug));
     const stream = await chain.stream({ messages: history });
 
     let fullText = "";
