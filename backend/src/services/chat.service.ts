@@ -1,7 +1,6 @@
 import prisma from "../config/prisma"
 import { createConsultantChain, createStreamingConsultantChain } from "../ai/chain.factory"
-import { isQueryRelevant, buildRedirectResponse } from "../ai/domainGuard"
-import { BaseMessage, HumanMessage } from "@langchain/core/messages"
+import { BaseMessage } from "@langchain/core/messages"
 import { Response } from "express"
 
 // create a new chat for a consultant
@@ -35,15 +34,6 @@ export const createChat = async (consultantSlug: string) => {
     });
 }
 
-const getLastUserQuery = (history: BaseMessage[]): string => {
-    for (let i = history.length - 1; i >= 0; i--) {
-        if (history[i] instanceof HumanMessage) {
-            return history[i].content as string;
-        }
-    }
-    return "";
-};
-
 // send a message to the AI for a specific consultant
 export const sendMessageToAi = async (consultantSlug: string, history: BaseMessage[]) => {
     const consultant = await prisma.consultant.findFirst({
@@ -55,15 +45,6 @@ export const sendMessageToAi = async (consultantSlug: string, history: BaseMessa
 
     if (!consultant) {
         throw new Error("Consultant not found")
-    }
-
-    const allowedTopics = consultant.allowedTopics as string[];
-    const userQuery = getLastUserQuery(history);
-
-    const relevant = await isQueryRelevant(userQuery, consultant.name, allowedTopics);
-    if (!relevant) {
-        const redirectText = buildRedirectResponse(consultant.name, allowedTopics);
-        return { answer: redirectText, disclaimer: "", followUpQuestions: [] };
     }
 
     const chain = await createConsultantChain(consultant.systemPrompt);
@@ -87,16 +68,28 @@ export const streamMessageToAi = async (
     if (!consultant) throw new Error("Consultant not found");
 
     const chain = createStreamingConsultantChain(consultant.systemPrompt);
+
+    console.log("STREAM START");
     const stream = await chain.stream({ messages: history });
 
     let fullText = "";
     for await (const chunk of stream) {
-        const token = chunk.content as string;
+        // chunk.content can be a string or an array of content blocks
+        const raw = chunk.content;
+        const token = typeof raw === "string" ? raw : Array.isArray(raw)
+            ? raw.map((b: unknown) => (typeof b === "string" ? b : (b as Record<string, unknown>)?.text ?? "")).join("")
+            : "";
         if (token) {
+            console.log("CHUNK:", JSON.stringify(token));
             fullText += token;
             res.write(`data: ${JSON.stringify({ token })}\n\n`);
+            // Flush immediately so the chunk is not held in a buffer
+            if (typeof (res as unknown as { flush?: () => void }).flush === "function") {
+                (res as unknown as { flush: () => void }).flush();
+            }
         }
     }
+    console.log("STREAM END");
 
     return fullText;
 }

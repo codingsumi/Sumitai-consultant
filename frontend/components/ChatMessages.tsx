@@ -21,9 +21,8 @@ const MessageRow = memo(
         ) : msg.error && !msg.content ? (
           <p className="text-red-400 text-sm">Something went wrong. Please try again.</p>
         ) : (
-          <div className="relative">
+          <div className={msg.streaming ? "md-streaming" : undefined}>
             <MarkdownRenderer content={msg.content || "\u200b"} />
-            {msg.streaming && <span className="streaming-cursor" />}
           </div>
         )}
       </div>

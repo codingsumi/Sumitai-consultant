@@ -86,7 +86,7 @@ Professional, empathetic, and thorough. Attentive to the whole person (mind, bod
 - For serious or emergency symptoms, advise seeking immediate conventional medical care.`,
     tone: "Professional, empathetic, and informative.",
     disclaimer: "This information is for educational purposes only and is not a substitute for professional medical advice.",
-    allowedTopics: ["Homeopathic medicines", "Remedies", "Dosage guidance", "General wellness", "Lifestyle advice"],
+    allowedTopics: ["Homeopathic medicines", "Remedies", "Potency and dosage", "Constitutional treatment", "Acute and chronic conditions", "General health and wellness", "Lifestyle and diet", "Hair", "Skin", "Digestion", "Immunity", "Pain management"],
     sortOrder: 1,
   },
   {
@@ -129,7 +129,7 @@ Calm, holistic, and grounded. Warm, thoughtful, and rooted in ancient wisdom whi
 - For serious symptoms, advise consulting a physician.`,
     tone: "Calm, holistic, and educational.",
     disclaimer: "Consult a qualified Ayurvedic practitioner before starting any treatment.",
-    allowedTopics: ["Herbs", "Ayurvedic remedies", "Diet", "Lifestyle", "Doshas"],
+    allowedTopics: ["Ayurvedic herbs", "Dosha balancing", "Panchakarma", "Ayurvedic diet", "Lifestyle practices", "Detox", "Rejuvenation", "Digestion", "Immunity", "Skin", "Hair", "General wellness"],
     sortOrder: 2,
   },
   {
@@ -173,7 +173,7 @@ Professional, factual, and reassuring. Clear, evidence-based, and never alarmist
 - For emergency symptoms, immediately advise emergency care.`,
     tone: "Professional and factual.",
     disclaimer: "Always consult a licensed physician before taking any medication.",
-    allowedTopics: ["Diseases", "Medicines", "Symptoms", "Treatments", "Health education"],
+    allowedTopics: ["Diseases", "Medical conditions", "Symptoms", "Medications", "Treatments", "Diagnostic tests", "Preventive healthcare", "Vaccinations", "First aid", "Surgery", "Health education"],
     sortOrder: 3,
   },
   {
@@ -217,7 +217,7 @@ Supportive, motivating, and grounded. Encouraging, non-judgmental, and focused o
 - For acute injuries or severe pain, advise rest and medical evaluation before resuming practice.`,
     tone: "Supportive and motivating.",
     disclaimer: "Practice yoga according to your physical condition and consult a professional if you have injuries.",
-    allowedTopics: ["Yoga poses", "Pranayama", "Meditation", "Stretching", "Flexibility"],
+    allowedTopics: ["Yoga poses", "Pranayama", "Meditation", "Mindfulness", "Flexibility", "Strength", "Stress relief", "Back pain", "Breathing techniques", "Yoga philosophy", "Therapeutic yoga", "Warm-up routines"],
     sortOrder: 4,
   },
   {
@@ -264,7 +264,7 @@ Practical, encouraging, and science-backed. Realistic about lifestyle, non-preac
 - For symptoms that may indicate a medical condition (unexplained weight loss, severe fatigue), advise medical evaluation.`,
     tone: "Practical and encouraging.",
     disclaimer: "Consult a registered dietitian or doctor for medical nutrition therapy.",
-    allowedTopics: ["Diet plans", "Nutrition", "Weight management", "Healthy eating", "Vitamins"],
+    allowedTopics: ["Diet plans", "Nutrition", "Weight management", "Healthy eating", "Vitamins", "Minerals", "Macronutrients", "Gut health", "Sports nutrition", "Hydration", "Food labels", "Meal planning"],
     sortOrder: 5,
   },
   {
@@ -312,7 +312,7 @@ Empathetic, calm, and non-judgmental. Warm, present, and focused on the person's
 - Add a disclaimer when topics approach clinical territory: "For ongoing mental health concerns, please consult a licensed psychologist, therapist, or psychiatrist."`,
     tone: "Empathetic, calm, and supportive.",
     disclaimer: "If you are experiencing a mental health crisis, seek immediate help from a qualified mental health professional or emergency services.",
-    allowedTopics: ["Stress management", "Mindfulness", "Meditation", "Sleep", "Emotional well-being"],
+    allowedTopics: ["Stress management", "Anxiety", "Mindfulness", "Meditation", "Sleep", "Emotional well-being", "Resilience", "Work-life balance", "Burnout", "Self-esteem", "Grief", "Mental health conditions", "OCD", "Depression awareness", "Coping strategies"],
     sortOrder: 6,
   },
 ];

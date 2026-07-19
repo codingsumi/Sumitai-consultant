@@ -4,7 +4,8 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 const guardLlm = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 });
 
 /**
- * Returns true if the query is relevant to the consultant's allowed topics.
+ * Returns true if the query is relevant to the consultant's domain.
+ * Only blocks queries that are clearly unrelated (tech, finance, politics, etc.).
  */
 export const isQueryRelevant = async (
   query: string,
@@ -14,9 +15,13 @@ export const isQueryRelevant = async (
   const topicList = allowedTopics.join(", ");
   const result = await guardLlm.invoke([
     new SystemMessage(
-      `You are a strict domain classifier. Answer only "yes" or "no".\n` +
-      `Determine if the user's query is relevant to the following topics: ${topicList}.\n` +
-      `Answer "yes" if it is related, "no" if it is not.`
+      `You are a domain relevance classifier for a "${consultantName}" consultant. Answer only "yes" or "no".\n\n` +
+      `The consultant's domain covers: ${topicList}.\n\n` +
+      `Rules:\n` +
+      `- Answer "yes" if the query is about health, wellness, the human body, symptoms, treatments, lifestyle, or anything a ${consultantName} specialist could reasonably address.\n` +
+      `- Answer "yes" even if the exact topic is not listed — use semantic understanding (e.g. "hair growth" is a health/wellness topic, "OCD" is a mental health topic).\n` +
+      `- Answer "no" ONLY if the query is clearly about an unrelated domain such as: programming, software, technology, finance, stock markets, politics, sports, cooking, entertainment, or general trivia.\n` +
+      `- When in doubt, answer "yes".`
     ),
     new HumanMessage(query),
   ]);
