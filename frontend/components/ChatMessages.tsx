@@ -10,10 +10,10 @@ const MessageRow = memo(
     <div className={cn("flex", msg.role === "human" ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "chat-message max-w-[80%] rounded-2xl px-4 py-2",
+          "chat-message",
           msg.role === "human"
-            ? "bg-[#F97316] text-white"
-            : "bg-white border border-[#E5E7EB] text-[#111827]"
+            ? "chat-message-user max-w-[72%] rounded-2xl rounded-br-sm px-4 py-3 shadow-sm"
+            : "max-w-[80%] rounded-2xl px-4 py-2 bg-white border border-[#E5E7EB] text-[#111827]"
         )}
       >
         {msg.role === "human" ? (
