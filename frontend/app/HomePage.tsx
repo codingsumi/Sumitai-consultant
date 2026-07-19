@@ -237,7 +237,7 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
                   onConsultantChange={setSelectedConsultant}
                   message={message}
                   onMessageChange={setMessage}
-                  onSend={handleSendMessage}
+                  onSend={() => handleSendMessage()}
                   loading={isStreaming}
                   chatStarted={chatStarted}
                 />

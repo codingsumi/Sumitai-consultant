@@ -1,8 +1,18 @@
 "use client";
 
-import { memo, useEffect, useRef } from "react";
-import { PillBottle, Atom, Tablets, Leaf, Apple, Brain, Stethoscope, Paperclip, Mic, SendHorizonal } from "lucide-react";
+import { memo, useEffect, useRef, useState, useCallback } from "react";
+import { PillBottle, Atom, Tablets, Leaf, Apple, Brain, Stethoscope, Mic, MicOff, SendHorizonal } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+type VoiceState = "idle" | "listening" | "processing";
+
+// Extend window for SpeechRecognition
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
 
 const MAX_HEIGHT = 180;
 
@@ -35,6 +45,63 @@ interface PromptBoxProps {
 function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange, loading, onSend, chatStarted }: PromptBoxProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composingRef = useRef(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [voiceState, setVoiceState] = useState<VoiceState>("idle");
+
+  const stopRecognition = useCallback(() => {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setVoiceState("idle");
+  }, []);
+
+  const handleMic = useCallback(() => {
+    if (voiceState !== "idle") {
+      stopRecognition();
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "";
+
+    let finalTranscript = "";
+
+    recognition.onstart = () => setVoiceState("listening");
+
+    recognition.onresult = (e: SpeechRecognitionEvent) => {
+      let interim = "";
+      finalTranscript = "";
+      for (let i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      onMessageChange((finalTranscript || interim).trim());
+    };
+
+    recognition.onspeechend = () => {
+      setVoiceState("processing");
+      recognition.stop();
+    };
+
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      setVoiceState("idle");
+      if (finalTranscript.trim()) textareaRef.current?.focus();
+    };
+
+    recognition.onerror = () => stopRecognition();
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [voiceState, onMessageChange, stopRecognition]);
+
+  useEffect(() => {
+    return () => stopRecognition();
+  }, [stopRecognition]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -70,11 +137,18 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
           className="flex-1 resize-none bg-transparent py-1 text-[15px] text-[#101828] placeholder:text-[#9AA4B2] outline-none leading-relaxed"
         />
         <div className="flex items-center gap-1.5 pb-0.5">
-          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#667085] transition-all duration-200">
-            <Paperclip className="h-4 w-4" />
-          </button>
-          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#667085] transition-all duration-200">
-            <Mic className="h-4 w-4" />
+          <button
+            type="button"
+            onClick={handleMic}
+            title={voiceState === "idle" ? "Start voice input" : "Stop recording"}
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200",
+              voiceState === "listening" && "text-red-500 bg-red-50 animate-pulse",
+              voiceState === "processing" && "text-orange-400 bg-orange-50",
+              voiceState === "idle" && "text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#667085]"
+            )}
+          >
+            {voiceState === "listening" ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
           </button>
           <button
             onClick={onSend}
