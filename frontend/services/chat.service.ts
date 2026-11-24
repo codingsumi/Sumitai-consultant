@@ -33,18 +33,29 @@ export const streamMessage = async (
   callbacks: StreamCallbacks,
   signal?: AbortSignal
 ) => {
+  const base = process.env.NEXT_PUBLIC_API_URL || "/api";
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/chat/${chatId}/messages/stream`,
+    `${base}/chat/${chatId}/messages/stream`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
+      credentials: "include",
       signal,
     }
   );
 
   if (!res.ok || !res.body) {
-    callbacks.onError("Stream request failed");
+    let detail = `Stream request failed (${res.status})`;
+    try {
+      const payload = await res.json();
+      if (payload?.error || payload?.message) {
+        detail = String(payload.error || payload.message);
+      }
+    } catch {
+      // keep status-based message
+    }
+    callbacks.onError(detail);
     return;
   }
 

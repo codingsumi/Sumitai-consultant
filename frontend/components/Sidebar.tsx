@@ -2,8 +2,6 @@
 
 import {
   Plus,
-  Settings,
-  ChevronRight,
   X,
   Sparkles,
   ArrowRight,
@@ -11,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Chat } from "@/hooks/useChat";
 import Image from "next/image";
+import ProfileMenu from "@/components/ProfileMenu";
 
 interface SidebarProps {
   open: boolean;
@@ -20,6 +19,7 @@ interface SidebarProps {
   onSelectChat: (chat: Chat) => void;
   onNewChat: () => void;
   conversationLoading: boolean;
+  onOpenProfile: () => void;
 }
 
 const chatIconColors = [
@@ -46,6 +46,7 @@ export default function Sidebar({
   onSelectChat,
   onNewChat,
   conversationLoading,
+  onOpenProfile,
 }: SidebarProps) {
   return (
     <>
@@ -253,15 +254,9 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* ── Bottom Settings ───────────────────────────── */}
+        {/* ── Profile menu ──────────────────────────────── */}
         <div className="border-t border-[#ECEEF2] px-3 py-3">
-          <button className="flex w-full items-center justify-between rounded-[12px] px-3.5 py-2.5 text-sm font-medium text-[#667085] transition-all duration-200 hover:bg-[#F7F8FA] hover:text-[#101828] group">
-            <div className="flex items-center gap-3">
-              <Settings className="h-[18px] w-[18px] text-[#9AA4B2] group-hover:text-[#667085] transition-colors duration-200" />
-              Settings
-            </div>
-            <ChevronRight className="h-4 w-4 text-[#C4CAD4] group-hover:text-[#9AA4B2] transition-colors duration-200" />
-          </button>
+          <ProfileMenu onOpenProfile={onOpenProfile} />
         </div>
       </aside>
     </>

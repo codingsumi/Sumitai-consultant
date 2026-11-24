@@ -29,6 +29,8 @@ import Sidebar from "@/components/Sidebar";
 import PromptBox from "@/components/PromptBox";
 import { useChat } from "@/hooks/useChat";
 import ChatMessages from "@/components/ChatMessages";
+import ProfileModal from "@/components/ProfileModal";
+import { useAuth } from "@/context/AuthContext";
 
 /* ── Data ─────────────────────────────────────────────────────── */
 
@@ -145,6 +147,8 @@ interface HomePageProps {
 export default function HomePage({ initialConsultantSlug, initialChatId }: HomePageProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [heroQuery, setHeroQuery] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const { user } = useAuth();
 
   const {
     consultants,
@@ -197,7 +201,10 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
         onSelectChat={(chat) => { handleSelectChat(chat); setSidebarOpen(false); }}
         onNewChat={handleNewChat}
         conversationLoading={conversationLoading}
+        onOpenProfile={() => { setProfileOpen(true); setSidebarOpen(false); }}
       />
+
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
 
       <div className="relative flex flex-1 flex-col lg:ml-[320px] min-h-0 z-10">
         {/* Mobile menu trigger */}
@@ -207,6 +214,17 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
         >
           <Menu className="h-5 w-5" />
         </button>
+
+        {user && (
+          <div className="pointer-events-none absolute right-4 top-4 z-20 hidden items-center gap-2 rounded-full border border-[#ECEEF2] bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur lg:flex">
+            <span className="text-[12px] font-medium text-[#344054]">{user.name}</span>
+            {user.accountType === "GUEST" && (
+              <span className="rounded-full bg-[#FFF7ED] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#FF7A00]">
+                Guest
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Scroll root */}
         <div data-scroll-root className="flex-1 overflow-y-auto min-h-0">

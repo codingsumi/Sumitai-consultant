@@ -2,9 +2,10 @@ import prisma from "../config/prisma"
 import { createConsultantChain, createStreamingConsultantChain } from "../ai/chain.factory"
 import { BaseMessage } from "@langchain/core/messages"
 import { Response } from "express"
+import { AppError } from "../utils/errors"
 
-// create a new chat for a consultant
-export const createChat = async (consultantSlug: string) => {
+// create a new chat for a consultant owned by the authenticated user
+export const createChat = async (consultantSlug: string, userId: string) => {
     const consultant = await prisma.consultant.findFirst({
         where: {
             slug: consultantSlug,
@@ -13,12 +14,13 @@ export const createChat = async (consultantSlug: string) => {
     })
 
     if (!consultant) {
-        throw new Error("Consultant not found")
+        throw new AppError("Consultant not found", 404)
     }
 
     return await prisma.chat.create({
         data: {
-            consultantId: consultant.id
+            consultantId: consultant.id,
+            userId,
         },
         select: {
             id: true,
@@ -44,7 +46,7 @@ export const sendMessageToAi = async (consultantSlug: string, history: BaseMessa
     })
 
     if (!consultant) {
-        throw new Error("Consultant not found")
+        throw new AppError("Consultant not found", 404)
     }
 
     const chain = await createConsultantChain(consultant.systemPrompt);
@@ -65,7 +67,7 @@ export const streamMessageToAi = async (
         where: { slug: consultantSlug, isActive: true }
     });
 
-    if (!consultant) throw new Error("Consultant not found");
+    if (!consultant) throw new AppError("Consultant not found", 404);
 
     const chain = createStreamingConsultantChain(consultant.systemPrompt);
 
@@ -94,9 +96,10 @@ export const streamMessageToAi = async (
     return fullText;
 }
 
-// chat list
-export const chatList = async () => {
+// chat list for a specific user
+export const chatList = async (userId: string) => {
     return await prisma.chat.findMany({
+        where: { userId },
         select: {
             id: true,
             title: true,
@@ -112,4 +115,17 @@ export const chatList = async () => {
             createdAt: "desc"
         }
     })
+}
+
+export const getOwnedChat = async (chatId: string, userId: string) => {
+    const chat = await prisma.chat.findFirst({
+        where: { id: chatId, userId },
+        include: { consultant: true },
+    });
+
+    if (!chat) {
+        throw new AppError("Chat not found", 404);
+    }
+
+    return chat;
 }

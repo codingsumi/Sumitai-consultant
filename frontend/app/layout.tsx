@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
+import AuthGate from "@/components/AuthGate";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,7 +32,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${inter.variable} ${jakarta.variable} ${ibmPlexSans.variable} h-full`} suppressHydrationWarning>
-      <body className={`h-full font-[var(--font-inter)] antialiased`} suppressHydrationWarning>{children}</body>
+      <body className={`h-full font-[var(--font-inter)] antialiased`} suppressHydrationWarning>
+        <AuthProvider>
+          <AuthGate>{children}</AuthGate>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

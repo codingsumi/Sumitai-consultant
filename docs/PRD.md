@@ -108,9 +108,11 @@ Stress management and emotional wellbeing.
 
 ## Authentication
 
-- Login
-- Register
-- Forgot Password
+- Email OTP login / register (Resend, no passwords)
+- Continue as Guest (name-based session)
+- HTTP-only session cookies
+- Guest → registered account conversion (claim + migrate chats)
+- User profiles (name, avatar, account type, logout, delete)
 
 ---
 
@@ -209,11 +211,17 @@ Deployment
 
 # 9. Database
 
-Users
+Users (registered + guest)
+
+EmailOTP
+
+GuestSession
+
+Session
 
 Consultants
 
-Chats
+Chats (owned by user)
 
 Messages
 

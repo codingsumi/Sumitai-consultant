@@ -1,17 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 import { createMessage, chatHistory } from "../services/message.service";
-import { streamMessageToAi } from "../services/chat.service";
+import { streamMessageToAi, getOwnedChat } from "../services/chat.service";
 import { isQueryRelevant, buildRedirectResponse } from "../ai/domainGuard";
 import { mapToLangChainMessages } from "../ai/message.mapper";
 import { generateChatTitle } from "../services/title.service";
 import { successResponse } from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import prisma from "../config/prisma";
+import { AppError } from "../utils/errors";
 
 export const create = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const chatId = req.params.chatId as string;
   const { message } = req.body;
 
+  await getOwnedChat(chatId, req.user!.id);
   const response = await createMessage(chatId, message);
 
   return successResponse(
@@ -25,6 +27,7 @@ export const create = asyncHandler(async (req: Request, res: Response, _next: Ne
 export const chatMessages = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const chatId = req.params.chatId as string;
 
+  await getOwnedChat(chatId, req.user!.id);
   const response = await chatHistory(chatId);
 
   return successResponse(res, response, "Messages fetched successfully");
@@ -35,7 +38,14 @@ export const streamMessage = async (req: Request, res: Response) => {
   const { message } = req.body;
 
   try {
-    const chat = await prisma.chat.findUnique({ where: { id: chatId } });
+    if (!req.user) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+
+    const chat = await prisma.chat.findFirst({
+      where: { id: chatId, userId: req.user.id },
+    });
 
     if (!chat) {
       res.status(404).json({ error: "Chat not found" });
@@ -92,10 +102,11 @@ export const streamMessage = async (req: Request, res: Response) => {
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : "Streaming failed";
+    const status = err instanceof AppError ? err.status : 500;
     if (res.headersSent) {
       res.write(`data: ${JSON.stringify({ error: errMsg })}\n\n`);
     } else {
-      res.status(500).json({ error: errMsg });
+      res.status(status).json({ error: errMsg });
     }
   } finally {
     res.end();

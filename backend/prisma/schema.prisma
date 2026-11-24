@@ -7,19 +7,84 @@ datasource db {
   provider = "postgresql"
 }
 
+enum AccountType {
+  REGISTERED
+  GUEST
+}
+
+enum AuthProvider {
+  EMAIL_OTP
+  GUEST
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String?      @unique
+  name         String
+  avatarUrl    String?      @db.Text
+  accountType  AccountType
+  authProvider AuthProvider
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  chats         Chat[]
+  sessions      Session[]
+  guestSession  GuestSession?
+
+  @@index([accountType])
+}
+
+model EmailOTP {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  lastSentAt DateTime  @default(now())
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email])
+  @@index([email, consumedAt])
+}
+
+model GuestSession {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  claimedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([expiresAt])
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
 model Consultant {
-  id String @id @default(cuid())
-  name String
-  slug String @unique
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
   description String?
 
-  systemPrompt String @db.Text
-  tone String
-  disclaimer String @db.Text
+  systemPrompt  String @db.Text
+  tone          String
+  disclaimer    String @db.Text
   allowedTopics Json
 
-  isActive Boolean @default(true)
-  sortOrder Int @default(0)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
 
   chats Chat[]
 
@@ -28,20 +93,27 @@ model Consultant {
 }
 
 model Chat {
-  id String @id @default(cuid())
-  title String?
+  id           String     @id @default(cuid())
+  title        String?
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   consultantId String
-  consultant Consultant @relation(fields: [consultantId], references: [id])
-  messages Message[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  consultant   Consultant @relation(fields: [consultantId], references: [id])
+  messages     Message[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([consultantId])
 }
 
 model Message {
-  id String @id @default(cuid())
-  chatId String
-  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  role String
-  content String @db.Text
+  id        String   @id @default(cuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      String
+  content   String   @db.Text
   createdAt DateTime @default(now())
+
+  @@index([chatId, createdAt])
 }
