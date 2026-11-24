@@ -6,14 +6,6 @@ import { cn } from "@/lib/utils";
 
 type VoiceState = "idle" | "listening" | "processing";
 
-// Extend window for SpeechRecognition
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}
-
 const MAX_HEIGHT = 180;
 
 const iconMap: Record<string, React.ElementType> = {
@@ -45,7 +37,7 @@ interface PromptBoxProps {
 function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange, loading, onSend, chatStarted }: PromptBoxProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composingRef = useRef(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
 
   const stopRecognition = useCallback(() => {
@@ -72,7 +64,7 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
 
     recognition.onstart = () => setVoiceState("listening");
 
-    recognition.onresult = (e: SpeechRecognitionEvent) => {
+    recognition.onresult = (e: SpeechRecognitionEventLike) => {
       let interim = "";
       finalTranscript = "";
       for (let i = 0; i < e.results.length; i++) {
