@@ -9,7 +9,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import prisma from "../config/prisma";
 
 export const create = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
-  const { chatId } = req.params;
+  const chatId = req.params.chatId as string;
   const { message } = req.body;
 
   const response = await createMessage(chatId, message);
@@ -23,7 +23,7 @@ export const create = asyncHandler(async (req: Request, res: Response, _next: Ne
 });
 
 export const chatMessages = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
-  const { chatId } = req.params;
+  const chatId = req.params.chatId as string;
 
   const response = await chatHistory(chatId);
 
