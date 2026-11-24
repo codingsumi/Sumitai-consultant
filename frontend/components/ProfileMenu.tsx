@@ -37,7 +37,7 @@ export default function ProfileMenu({ onOpenProfile }: ProfileMenuProps) {
   const handleLogout = async () => {
     setOpen(false);
     await logout();
-    router.replace("/login");
+    router.replace("/");
   };
 
   return (

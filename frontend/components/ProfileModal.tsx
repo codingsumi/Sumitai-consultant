@@ -120,7 +120,7 @@ export default function ProfileModal({ open, onClose }: ProfileModalProps) {
     setSaving(true);
     try {
       await deleteAccount();
-      router.replace("/login");
+      router.replace("/");
     } catch (err) {
       setError(errorMessage(err, "Failed to delete account"));
       setSaving(false);
@@ -129,7 +129,7 @@ export default function ProfileModal({ open, onClose }: ProfileModalProps) {
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/login");
+    router.replace("/");
   };
 
   return (
