@@ -12,7 +12,7 @@ const iconMap: Record<string, React.ElementType> = {
   homeopathy: PillBottle,
   yoga: Atom,
   allopathy: Tablets,
-  ayurvedic: Leaf,
+  ayurveda: Leaf,
   nutrition: Apple,
   "mental-wellness": Brain,
 };

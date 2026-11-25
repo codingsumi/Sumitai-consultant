@@ -317,6 +317,42 @@ export const useChat = (options: UseChatOptions = {}) => {
     [message, ensureChat, runStream]
   );
 
+  /** Start a brand-new chat and immediately submit the given question. */
+  const startQuestionAsNewChat = useCallback(
+    async (text: string, overrideConsultant?: string) => {
+      const userText = text.trim();
+      if (!userText || isStreamingRef.current) return;
+
+      stopStream();
+      selectedChatRef.current = null;
+      setSelectedChat(null);
+      setMessages([]);
+      setConversationId(null);
+      setChatStarted(false);
+
+      if (overrideConsultant) {
+        selectedConsultantRef.current = overrideConsultant;
+        setSelectedConsultant(overrideConsultant);
+      }
+
+      const consultantSlug = overrideConsultant ?? selectedConsultantRef.current;
+      setMessage("");
+
+      try {
+        const chat = await ensureChat(consultantSlug);
+        await runStream(chat.id, userText, {
+          appendUser: true,
+          restoreDraftOnError: userText,
+        });
+      } catch (error) {
+        console.error(error);
+        setMessage(userText);
+        setIsStreaming(false);
+      }
+    },
+    [stopStream, ensureChat, runStream]
+  );
+
   const editMessage = useCallback(
     async (messageId: string, newText: string) => {
       const text = newText.trim();
@@ -395,6 +431,7 @@ export const useChat = (options: UseChatOptions = {}) => {
     chatSwitching,
     conversationId,
     handleSendMessage,
+    startQuestionAsNewChat,
     handleNewChat,
     chatStarted,
     editMessage,

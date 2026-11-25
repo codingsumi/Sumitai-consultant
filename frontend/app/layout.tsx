@@ -23,8 +23,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Sumit AI – Your AI Consultant",
-  description: "AI Consultant for Homeopathy, Yoga, English, and Ayurvedic wellness",
+  title: "SumitAI – Your AI Consultant",
+  description:
+    "AI-powered assistant for Homeopathy, Yoga, Allopathy, Ayurveda, Nutrition, and Mental Wellness",
 };
 
 export const viewport: Viewport = {

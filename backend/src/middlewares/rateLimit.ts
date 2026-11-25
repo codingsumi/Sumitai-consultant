@@ -30,3 +30,11 @@ export const authGeneralLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const feedbackLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Too many feedback submissions. Try again later." },
+});
