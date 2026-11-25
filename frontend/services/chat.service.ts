@@ -69,26 +69,43 @@ export const streamMessage = async (
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let settled = false;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  const finish = (kind: "done" | "error", detail?: string) => {
+    if (settled) return;
+    settled = true;
+    if (kind === "done") callbacks.onDone();
+    else callbacks.onError(detail || "Streaming failed");
+  };
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      try {
-        const payload = JSON.parse(line.slice(6));
-        if (payload.token) callbacks.onToken(payload.token);
-        else if (payload.title) callbacks.onTitle(payload.title);
-        else if (payload.done) callbacks.onDone();
-        else if (payload.error) callbacks.onError(payload.error);
-      } catch {
-        // malformed chunk — skip
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        try {
+          const payload = JSON.parse(line.slice(6));
+          if (payload.token) callbacks.onToken(payload.token);
+          else if (payload.title) callbacks.onTitle(payload.title);
+          else if (payload.done) finish("done");
+          else if (payload.error) finish("error", payload.error);
+        } catch {
+          // malformed chunk — skip
+        }
       }
     }
+
+    if (!settled) {
+      finish("error", "Connection closed before the response finished");
+    }
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") throw err;
+    finish("error", err instanceof Error ? err.message : "Streaming failed");
   }
 };

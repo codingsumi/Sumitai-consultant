@@ -243,6 +243,17 @@ export const useChat = (options: UseChatOptions = {}) => {
                 })
               );
               setIsStreaming(false);
+              // Update the URL only after streaming finishes. Doing this at
+              // createChat time remounts the App Router chat page on mobile
+              // and aborts the in-flight stream.
+              const chat = selectedChatRef.current;
+              if (chat?.consultant?.slug) {
+                window.history.replaceState(
+                  null,
+                  "",
+                  `/chat/${chat.consultant.slug}/${chat.id}`
+                );
+              }
               loadChats();
             },
             onError: (msg) => {
@@ -284,7 +295,8 @@ export const useChat = (options: UseChatOptions = {}) => {
     if (!currentChat) {
       const chat = await createChat(consultantSlug);
       currentChat = chat;
-      window.history.replaceState(null, "", `/chat/${chat.consultant.slug}/${chat.id}`);
+      // Keep the user on `/` while the first reply streams. URL sync happens in onDone.
+      selectedChatRef.current = chat;
       setSelectedChat(chat);
       setConversationId(chat.id);
       setChatStarted(true);

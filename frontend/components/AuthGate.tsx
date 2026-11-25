@@ -20,7 +20,14 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Only bounce unauthenticated users off /chat/*. Avoid racing a still-hydrating
+    // session on mobile, which previously wiped in-progress answers back to `/`.
     if (!user && needsAuth) {
+      try {
+        if (localStorage.getItem("sumitai_authed") === "1") return;
+      } catch {
+        /* ignore */
+      }
       router.replace("/");
     }
   }, [user, loading, isLogin, needsAuth, router]);
@@ -38,7 +45,23 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user && needsAuth) return null;
+  if (!user && needsAuth) {
+    try {
+      if (localStorage.getItem("sumitai_authed") === "1") {
+        return (
+          <div className="flex h-full min-h-screen items-center justify-center bg-[#FCFCFD]">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#F97316] border-t-transparent" />
+              <p className="text-sm text-[#9AA4B2]">Restoring session…</p>
+            </div>
+          </div>
+        );
+      }
+    } catch {
+      /* ignore */
+    }
+    return null;
+  }
   if (user && isLogin) return null;
 
   return <>{children}</>;
