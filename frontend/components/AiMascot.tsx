@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { BRAND_IMAGE } from "@/lib/brand";
 
 type AiMascotProps = {
   size?: number;
@@ -16,7 +17,7 @@ export default function AiMascot({
       <div className="mascot-float relative" style={{ width: size, height: size }}>
         <div className="mascot-glow absolute inset-0 rounded-full" />
         <Image
-          src="/images/sumit-mascot.jpg"
+          src={BRAND_IMAGE}
           alt="Sumit AI mascot"
           width={size}
           height={size}

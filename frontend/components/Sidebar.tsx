@@ -71,19 +71,13 @@ export default function Sidebar({
         {/* ── Logo ─────────────────────────────────────── */}
         <div className="flex items-center justify-between px-4 sm:px-5 pt-5 sm:pt-6 pb-4 sm:pb-5">
           <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] shadow-md"
-              style={{
-                background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
-                boxShadow: "0 4px 12px rgba(255,122,0,0.30)",
-              }}
-            >
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-[12px] border border-[#ECEEF2] bg-white shadow-sm">
               <Image
-                src="/images/sumitai-logo.png"
-                height={22}
-                width={22}
+                src="/images/sumit-mascot.jpg"
+                height={40}
+                width={40}
                 alt="Sumit AI"
-                className="brightness-0 invert"
+                className="h-full w-full object-cover"
               />
             </div>
             <div className="flex flex-col leading-none min-w-0">

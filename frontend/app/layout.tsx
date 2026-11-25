@@ -26,6 +26,13 @@ export const metadata: Metadata = {
   title: "SumitAI – Your AI Consultant",
   description:
     "AI-powered assistant for Homeopathy, Yoga, Allopathy, Ayurveda, Nutrition, and Mental Wellness",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/images/favicon.png", type: "image/png", sizes: "48x48" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {

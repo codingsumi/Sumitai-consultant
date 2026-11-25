@@ -74,19 +74,14 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-[420px]">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div
-            className="mb-5 flex h-14 w-14 items-center justify-center rounded-[18px]"
-            style={{
-              background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
-              boxShadow: "0 8px 24px rgba(255,122,0,0.30)",
-            }}
-          >
+          <div className="mb-5 relative h-14 w-14 overflow-hidden rounded-[18px] border border-[#ECEEF2] bg-white shadow-[0_8px_24px_rgba(255,122,0,0.18)]">
             <Image
-              src="/images/sumitai-logo.png"
-              height={28}
-              width={28}
+              src="/images/sumit-mascot.jpg"
+              height={56}
+              width={56}
               alt="Sumit AI"
-              className="brightness-0 invert"
+              className="h-full w-full object-cover"
+              priority
             />
           </div>
           <h1

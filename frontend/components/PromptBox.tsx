@@ -32,9 +32,22 @@ interface PromptBoxProps {
   loading: boolean;
   onSend: () => void;
   chatStarted?: boolean;
+  /** Larger home/empty-state input */
+  size?: "default" | "hero";
 }
 
-function PromptBox({ consultants, selectedConsultant, onConsultantChange, message, onMessageChange, loading, onSend, chatStarted }: PromptBoxProps) {
+function PromptBox({
+  consultants,
+  selectedConsultant,
+  onConsultantChange,
+  message,
+  onMessageChange,
+  loading,
+  onSend,
+  chatStarted,
+  size = "default",
+}: PromptBoxProps) {
+  const isHero = size === "hero";
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composingRef = useRef(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -114,9 +127,16 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
   const canSend = message.trim().length > 0 && !loading;
 
   return (
-    <div className="w-full space-y-3">
+    <div className={cn("w-full", isHero ? "space-y-4" : "space-y-3")}>
       {/* Input bar */}
-      <div className="hero-search prompt-box flex items-end gap-2 sm:gap-3 rounded-[18px] sm:rounded-[20px] border border-[#ECEEF2] bg-white px-3 sm:px-5 py-2.5 sm:py-3 shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-200 has-[:focus]:border-[#FDBA74] has-[:focus]:shadow-[0_4px_20px_rgba(255,122,0,0.12)]">
+      <div
+        className={cn(
+          "hero-search prompt-box flex items-end gap-2 sm:gap-3 border border-[#ECEEF2] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-200 has-[:focus]:border-[#FDBA74] has-[:focus]:shadow-[0_4px_20px_rgba(255,122,0,0.12)]",
+          isHero
+            ? "min-h-[64px] sm:min-h-[72px] rounded-[22px] sm:rounded-[24px] px-4 sm:px-6 py-3.5 sm:py-4"
+            : "rounded-[18px] sm:rounded-[20px] px-3 sm:px-5 py-2.5 sm:py-3"
+        )}
+      >
         <textarea
           ref={textareaRef}
           value={message}
@@ -128,16 +148,22 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
           placeholder="Ask your health question..."
           enterKeyHint="send"
           disabled={loading}
-          className="flex-1 min-w-0 resize-none bg-transparent py-1.5 text-[16px] sm:text-[15px] text-[#101828] placeholder:text-[#9AA4B2] outline-none leading-relaxed disabled:opacity-70"
+          className={cn(
+            "flex-1 min-w-0 resize-none bg-transparent text-[#101828] placeholder:text-[#9AA4B2] outline-none leading-relaxed disabled:opacity-70",
+            isHero
+              ? "py-2 text-[16px] sm:text-[17px]"
+              : "py-1.5 text-[16px] sm:text-[15px]"
+          )}
         />
-        <div className="flex items-center gap-1 sm:gap-1.5 pb-0.5 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 pb-0.5 shrink-0">
           <button
             type="button"
             onClick={handleMic}
             title={voiceState === "idle" ? "Start voice input" : "Stop recording"}
             aria-label={voiceState === "idle" ? "Start voice input" : "Stop recording"}
             className={cn(
-              "flex h-10 w-10 sm:h-8 sm:w-8 items-center justify-center rounded-lg transition-all duration-200",
+              "flex items-center justify-center rounded-lg transition-all duration-200",
+              isHero ? "h-11 w-11 sm:h-10 sm:w-10" : "h-10 w-10 sm:h-8 sm:w-8",
               voiceState === "listening" && "text-red-500 bg-red-50 animate-pulse",
               voiceState === "processing" && "text-orange-400 bg-orange-50",
               voiceState === "idle" && "text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#667085]"
@@ -149,7 +175,10 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
             onClick={onSend}
             disabled={!canSend}
             aria-label="Send message"
-            className="flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-[12px] text-white transition-all duration-200 disabled:opacity-35 active:scale-95"
+            className={cn(
+              "flex items-center justify-center rounded-[12px] text-white transition-all duration-200 disabled:opacity-35 active:scale-95",
+              isHero ? "h-11 w-11 sm:h-10 sm:w-10" : "h-10 w-10 sm:h-9 sm:w-9"
+            )}
             style={{
               background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
               boxShadow: canSend ? "0 4px 12px rgba(255,122,0,0.38)" : "none",
@@ -166,7 +195,7 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
 
       {/* Consultant pill selector — hidden once chat has started */}
       {!chatStarted && (
-        <div className="flex items-center justify-start sm:justify-center gap-2 flex-nowrap sm:flex-wrap overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center justify-center gap-2 flex-wrap overflow-x-auto pb-1 scrollbar-none">
           {consultants.map(({ id, slug, name }) => {
             const Icon = iconMap[slug] ?? Stethoscope;
             return (

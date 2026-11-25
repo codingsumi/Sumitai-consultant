@@ -92,18 +92,14 @@ export default function AppHeader({
 
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
             <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px]"
-              style={{
-                background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
-                boxShadow: "0 4px 12px rgba(255,122,0,0.28)",
-              }}
+              className="relative h-9 w-9 shrink-0 overflow-hidden rounded-[12px] border border-[#ECEEF2] bg-white shadow-sm"
             >
               <Image
-                src="/images/sumitai-logo.png"
-                height={18}
-                width={18}
+                src="/images/sumit-mascot.jpg"
+                height={36}
+                width={36}
                 alt=""
-                className="brightness-0 invert"
+                className="h-full w-full object-cover"
               />
             </div>
             <div className="min-w-0">

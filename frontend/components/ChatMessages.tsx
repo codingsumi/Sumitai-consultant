@@ -1,14 +1,8 @@
 "use client";
 
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
-  PillBottle,
-  Atom,
-  Tablets,
-  Leaf,
-  Apple,
-  Brain,
-  Stethoscope,
   Copy,
   Check,
   Pencil,
@@ -17,16 +11,8 @@ import {
 } from "lucide-react";
 import { Message } from "@/hooks/useChat";
 import { cn } from "@/lib/utils";
+import { BRAND_IMAGE } from "@/lib/brand";
 import MarkdownRenderer from "./MarkdownRenderer";
-
-const iconMap: Record<string, React.ElementType> = {
-  homeopathy: PillBottle,
-  yoga: Atom,
-  allopathy: Tablets,
-  ayurvedic: Leaf,
-  nutrition: Apple,
-  "mental-wellness": Brain,
-};
 
 function TypingIndicator() {
   return (
@@ -101,7 +87,7 @@ function MessageActions({
 const MessageRow = memo(
   ({
     msg,
-    consultantSlug,
+    consultantSlug: _consultantSlug,
     isStreaming,
     onEdit,
     onRegenerate,
@@ -117,7 +103,6 @@ const MessageRow = memo(
     const [editText, setEditText] = useState(msg.content);
     const editRef = useRef<HTMLTextAreaElement>(null);
     const isHuman = msg.role === "human";
-    const Icon = iconMap[consultantSlug] ?? Stethoscope;
     const showTyping = !isHuman && !!msg.streaming && !msg.content;
     const actionsDisabled = isStreaming;
 
@@ -169,13 +154,16 @@ const MessageRow = memo(
       >
         {!isHuman && (
           <div
-            className="msg-avatar mt-1 flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full text-white"
-            style={{
-              background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
-            }}
+            className="msg-avatar relative mt-1 h-7 w-7 sm:h-8 sm:w-8 shrink-0 overflow-hidden rounded-full border border-[#ECEEF2] bg-white"
             aria-hidden
           >
-            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <Image
+              src={BRAND_IMAGE}
+              alt=""
+              width={32}
+              height={32}
+              className="h-full w-full object-cover"
+            />
           </div>
         )}
 

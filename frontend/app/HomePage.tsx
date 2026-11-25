@@ -5,7 +5,6 @@ import Sidebar from "@/components/Sidebar";
 import PromptBox from "@/components/PromptBox";
 import ChatMessages from "@/components/ChatMessages";
 import ProfileModal from "@/components/ProfileModal";
-import AiMascot from "@/components/AiMascot";
 import AppHeader from "@/components/AppHeader";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/context/AuthContext";
@@ -135,42 +134,40 @@ export default function HomePage({ initialConsultantSlug, initialChatId }: HomeP
               </div>
             </div>
           ) : (
-            <div className="mx-auto w-full max-w-[720px] min-w-0 px-4 py-6 sm:px-6 sm:py-10 pb-[max(2rem,env(safe-area-inset-bottom))]">
-              <div className="flex flex-col items-center text-center">
-                <AiMascot
-                  size={96}
-                  message="Hello! How can I help you today?"
-                />
+            <div className="flex min-h-full w-full items-center justify-center px-4 py-8 sm:px-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
+              <div className="mx-auto w-full max-w-[840px] min-w-0">
+                <div className="flex flex-col items-center text-center">
+                  <h1
+                    className="text-[1.5rem] sm:text-[clamp(28px,4vw,40px)] font-bold leading-tight tracking-tight text-[#101828] px-1"
+                    style={{ fontFamily: "var(--font-jakarta), sans-serif" }}
+                  >
+                    Hello! How can I help you today?
+                  </h1>
+                  <p className="mx-auto mt-2.5 max-w-[560px] text-[13px] sm:text-[14px] leading-relaxed text-[#667085] px-1">
+                    Ask anything about wellness, lifestyle, or guidance from SumitAI&apos;s
+                    specialist consultants — in text or by voice.
+                  </p>
+                </div>
 
-                <h1
-                  className="mt-5 sm:mt-6 text-[1.5rem] sm:text-[clamp(28px,4vw,40px)] font-bold leading-tight tracking-tight text-[#101828] px-1"
-                  style={{ fontFamily: "var(--font-jakarta), sans-serif" }}
-                >
-                  Hello! How can I help you today?
-                </h1>
-                <p className="mx-auto mt-2.5 max-w-[520px] text-[13px] sm:text-[14px] leading-relaxed text-[#667085] px-1">
-                  Ask anything about wellness, lifestyle, or guidance from SumitAI&apos;s
-                  specialist consultants — in text or by voice.
+                <div className="mt-7 sm:mt-8">
+                  <PromptBox
+                    consultants={consultants}
+                    selectedConsultant={selectedConsultant}
+                    onConsultantChange={setSelectedConsultant}
+                    message={message}
+                    onMessageChange={setMessage}
+                    onSend={() => handleSendMessage()}
+                    loading={isStreaming}
+                    chatStarted={chatStarted}
+                    size="hero"
+                  />
+                </div>
+
+                <p className="mt-6 sm:mt-8 text-center text-[11px] text-[#C4CAD4] px-2">
+                  Sumit AI can make mistakes. Please verify important health information with a
+                  qualified professional.
                 </p>
               </div>
-
-              <div className="mt-6 sm:mt-8">
-                <PromptBox
-                  consultants={consultants}
-                  selectedConsultant={selectedConsultant}
-                  onConsultantChange={setSelectedConsultant}
-                  message={message}
-                  onMessageChange={setMessage}
-                  onSend={() => handleSendMessage()}
-                  loading={isStreaming}
-                  chatStarted={chatStarted}
-                />
-              </div>
-
-              <p className="mt-8 sm:mt-10 text-center text-[11px] text-[#C4CAD4] px-2">
-                Sumit AI can make mistakes. Please verify important health information with a
-                qualified professional.
-              </p>
             </div>
           )}
         </div>
