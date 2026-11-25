@@ -20,6 +20,13 @@ export const getChatMessages = async (chatId: string) => {
   return data.data;
 };
 
+export const truncateMessages = async (chatId: string, keepCount: number) => {
+  const { data } = await api.delete(`/chat/${chatId}/messages`, {
+    data: { keepCount },
+  });
+  return data.data;
+};
+
 export type StreamCallbacks = {
   onToken: (token: string) => void;
   onTitle: (title: string) => void;

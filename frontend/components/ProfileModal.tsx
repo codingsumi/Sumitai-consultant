@@ -133,8 +133,8 @@ export default function ProfileModal({ open, onClose }: ProfileModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-[480px] max-h-[90vh] overflow-y-auto rounded-[24px] border border-[#ECEEF2] bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 px-0 sm:px-4 backdrop-blur-sm pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <div className="relative w-full max-w-[480px] max-h-[min(92vh,100%)] overflow-y-auto rounded-t-[24px] sm:rounded-[24px] border border-[#ECEEF2] bg-white p-5 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
         <button
           type="button"
           onClick={onClose}

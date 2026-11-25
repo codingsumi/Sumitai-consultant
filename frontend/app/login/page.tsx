@@ -68,7 +68,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FCFCFD] px-4 py-10">
+    <div className="relative flex min-h-full h-full items-center justify-center overflow-y-auto overscroll-contain bg-[#FCFCFD] px-4 py-8 sm:py-10">
       <div className="blob-orange" />
       <div className="blob-purple" />
 

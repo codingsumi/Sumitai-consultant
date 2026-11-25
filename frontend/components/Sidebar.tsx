@@ -59,8 +59,9 @@ export default function Sidebar({
 
       <aside
         className={cn(
-          "fixed top-0 left-0 z-30 h-full w-[320px] flex flex-col transition-transform duration-200",
+          "fixed top-0 left-0 z-30 h-full w-[min(320px,100vw)] max-w-[85vw] flex flex-col transition-transform duration-200",
           "bg-[#FCFCFD] border-r border-[#ECEEF2]",
+          "pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]",
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
         style={{
@@ -68,10 +69,10 @@ export default function Sidebar({
         }}
       >
         {/* ── Logo ─────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-5 pt-6 pb-5">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-4 sm:px-5 pt-5 sm:pt-6 pb-4 sm:pb-5">
+          <div className="flex items-center gap-3 min-w-0">
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-[12px] shadow-md"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] shadow-md"
               style={{
                 background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
                 boxShadow: "0 4px 12px rgba(255,122,0,0.30)",
@@ -85,7 +86,7 @@ export default function Sidebar({
                 className="brightness-0 invert"
               />
             </div>
-            <div className="flex flex-col leading-none">
+            <div className="flex flex-col leading-none min-w-0">
               <span
                 className="text-[15px] font-bold tracking-tight text-[#101828]"
                 style={{ fontFamily: "var(--font-inter), sans-serif" }}
@@ -99,9 +100,10 @@ export default function Sidebar({
           </div>
           <button
             onClick={onClose}
-            className="lg:hidden flex h-8 w-8 items-center justify-center rounded-lg text-[#667085] hover:bg-[#F2F4F7] hover:text-[#101828] transition-all duration-200"
+            aria-label="Close menu"
+            className="lg:hidden flex h-11 w-11 items-center justify-center rounded-xl text-[#667085] active:bg-[#F2F4F7] hover:bg-[#F2F4F7] hover:text-[#101828] transition-all duration-200"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -148,10 +150,10 @@ export default function Sidebar({
                 disabled={conversationLoading}
                 onClick={() => onSelectChat(chat)}
                 className={cn(
-                  "group flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-left transition-all duration-200",
+                  "group flex w-full items-center gap-3 rounded-[12px] px-3 py-3 sm:py-2.5 text-left transition-all duration-200 min-h-[52px]",
                   selectedChat?.id === chat.id
                     ? "bg-[#FFF4EC] shadow-sm"
-                    : "hover:bg-[#F7F8FA] hover:shadow-sm"
+                    : "hover:bg-[#F7F8FA] hover:shadow-sm active:bg-[#F7F8FA]"
                 )}
               >
                 <div

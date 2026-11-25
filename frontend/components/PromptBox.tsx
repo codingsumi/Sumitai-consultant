@@ -116,7 +116,7 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
   return (
     <div className="w-full space-y-3">
       {/* Input bar */}
-      <div className="hero-search flex items-end gap-3 rounded-[20px] border border-[#ECEEF2] bg-white px-5 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-200">
+      <div className="hero-search prompt-box flex items-end gap-2 sm:gap-3 rounded-[18px] sm:rounded-[20px] border border-[#ECEEF2] bg-white px-3 sm:px-5 py-2.5 sm:py-3 shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-200 has-[:focus]:border-[#FDBA74] has-[:focus]:shadow-[0_4px_20px_rgba(255,122,0,0.12)]">
         <textarea
           ref={textareaRef}
           value={message}
@@ -126,15 +126,18 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
           onCompositionStart={() => { composingRef.current = true; }}
           onCompositionEnd={() => { composingRef.current = false; }}
           placeholder="Ask your health question..."
-          className="flex-1 resize-none bg-transparent py-1 text-[15px] text-[#101828] placeholder:text-[#9AA4B2] outline-none leading-relaxed"
+          enterKeyHint="send"
+          disabled={loading}
+          className="flex-1 min-w-0 resize-none bg-transparent py-1.5 text-[16px] sm:text-[15px] text-[#101828] placeholder:text-[#9AA4B2] outline-none leading-relaxed disabled:opacity-70"
         />
-        <div className="flex items-center gap-1.5 pb-0.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 pb-0.5 shrink-0">
           <button
             type="button"
             onClick={handleMic}
             title={voiceState === "idle" ? "Start voice input" : "Stop recording"}
+            aria-label={voiceState === "idle" ? "Start voice input" : "Stop recording"}
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200",
+              "flex h-10 w-10 sm:h-8 sm:w-8 items-center justify-center rounded-lg transition-all duration-200",
               voiceState === "listening" && "text-red-500 bg-red-50 animate-pulse",
               voiceState === "processing" && "text-orange-400 bg-orange-50",
               voiceState === "idle" && "text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#667085]"
@@ -145,7 +148,8 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
           <button
             onClick={onSend}
             disabled={!canSend}
-            className="flex h-9 w-9 items-center justify-center rounded-[12px] text-white transition-all duration-200 disabled:opacity-35 hover:scale-105 active:scale-95"
+            aria-label="Send message"
+            className="flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-[12px] text-white transition-all duration-200 disabled:opacity-35 active:scale-95"
             style={{
               background: "linear-gradient(135deg, #FF7A00 0%, #FF5B7F 100%)",
               boxShadow: canSend ? "0 4px 12px rgba(255,122,0,0.38)" : "none",
@@ -162,7 +166,7 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
 
       {/* Consultant pill selector — hidden once chat has started */}
       {!chatStarted && (
-        <div className="flex items-center justify-center gap-2 flex-wrap">
+        <div className="flex items-center justify-start sm:justify-center gap-2 flex-nowrap sm:flex-wrap overflow-x-auto pb-1 scrollbar-none">
           {consultants.map(({ id, slug, name }) => {
             const Icon = iconMap[slug] ?? Stethoscope;
             return (
@@ -170,10 +174,10 @@ function PromptBox({ consultants, selectedConsultant, onConsultantChange, messag
                 key={id}
                 onClick={() => onConsultantChange(slug)}
                 className={cn(
-                  "flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 cursor-pointer",
+                  "flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-medium transition-all duration-200 cursor-pointer",
                   selectedConsultant === slug
                     ? "text-white shadow-sm"
-                    : "bg-white text-[#667085] border border-[#ECEEF2] hover:border-[#FF7A00] hover:text-[#FF7A00]"
+                    : "bg-white text-[#667085] border border-[#ECEEF2] active:border-[#FF7A00] active:text-[#FF7A00]"
                 )}
                 style={
                   selectedConsultant === slug

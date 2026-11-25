@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { createMessage, chatHistory } from "../services/message.service";
+import { z } from "zod";
+import { createMessage, chatHistory, truncateMessages } from "../services/message.service";
 import { streamMessageToAi, getOwnedChat } from "../services/chat.service";
 import { isQueryRelevant, buildRedirectResponse } from "../ai/domainGuard";
 import { mapToLangChainMessages } from "../ai/message.mapper";
@@ -8,6 +9,10 @@ import { successResponse } from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import prisma from "../config/prisma";
 import { AppError } from "../utils/errors";
+
+export const truncateMessagesSchema = z.object({
+  keepCount: z.number().int().min(0),
+});
 
 export const create = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const chatId = req.params.chatId as string;
@@ -31,6 +36,16 @@ export const chatMessages = asyncHandler(async (req: Request, res: Response, _ne
   const response = await chatHistory(chatId);
 
   return successResponse(res, response, "Messages fetched successfully");
+});
+
+export const truncate = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+  const chatId = req.params.chatId as string;
+  const { keepCount } = req.body as z.infer<typeof truncateMessagesSchema>;
+
+  await getOwnedChat(chatId, req.user!.id);
+  const result = await truncateMessages(chatId, keepCount);
+
+  return successResponse(res, result, "Messages truncated successfully");
 });
 
 export const streamMessage = async (req: Request, res: Response) => {

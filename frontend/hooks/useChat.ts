@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getConsultants } from "@/services/consultant.service";
-import { createChat, streamMessage, getChats, getChatMessages } from "@/services/chat.service";
+import {
+  createChat,
+  streamMessage,
+  getChats,
+  getChatMessages,
+  truncateMessages,
+} from "@/services/chat.service";
 
 // Module-level consultant cache
 let consultantCache: Consultant[] | null = null;
@@ -35,6 +41,13 @@ interface UseChatOptions {
   initialConsultantSlug?: string;
 }
 
+interface StreamOptions {
+  /** When true, append a human message before the AI placeholder (normal send / edit). */
+  appendUser?: boolean;
+  /** If set, restore this draft into the input on stream error. */
+  restoreDraftOnError?: string;
+}
+
 export const useChat = (options: UseChatOptions = {}) => {
   const { initialChatId, initialConsultantSlug } = options;
   const router = useRouter();
@@ -58,9 +71,9 @@ export const useChat = (options: UseChatOptions = {}) => {
   const abortRef = useRef<AbortController | null>(null);
   const tokenBufferRef = useRef("");
   const rafRef = useRef<number | null>(null);
-  // Keep refs in sync for use inside async callbacks
   const selectedConsultantRef = useRef(selectedConsultant);
   const selectedChatRef = useRef<Chat | null>(null);
+  const isStreamingRef = useRef(false);
   const initialLoadDoneRef = useRef(false);
 
   useEffect(() => {
@@ -70,6 +83,24 @@ export const useChat = (options: UseChatOptions = {}) => {
   useEffect(() => {
     selectedChatRef.current = selectedChat;
   }, [selectedChat]);
+
+  useEffect(() => {
+    isStreamingRef.current = isStreaming;
+  }, [isStreaming]);
+
+  const stopStream = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    tokenBufferRef.current = "";
+    setIsStreaming(false);
+  }, []);
+
+  // Cleanup streaming on unmount
+  useEffect(() => () => stopStream(), [stopStream]);
 
   const loadChats = useCallback(async () => {
     try {
@@ -84,6 +115,7 @@ export const useChat = (options: UseChatOptions = {}) => {
 
   const loadConversation = useCallback(async (chat: Chat, switching = false) => {
     try {
+      stopStream();
       if (switching) setChatSwitching(true);
       setConversationLoading(true);
       setMessages([]);
@@ -98,7 +130,7 @@ export const useChat = (options: UseChatOptions = {}) => {
       setConversationLoading(false);
       if (switching) setChatSwitching(false);
     }
-  }, []);
+  }, [stopStream]);
 
   useEffect(() => {
     if (initialLoadDoneRef.current) return;
@@ -107,12 +139,16 @@ export const useChat = (options: UseChatOptions = {}) => {
     const initialize = async () => {
       try {
         const [fetchedConsultants, fetchedChats] = await Promise.all([
-          consultantCache ? Promise.resolve(consultantCache) : getConsultants().then((d) => { consultantCache = d; return d; }),
+          consultantCache
+            ? Promise.resolve(consultantCache)
+            : getConsultants().then((d) => {
+                consultantCache = d;
+                return d;
+              }),
           loadChats(),
         ]);
         setConsultants(fetchedConsultants);
 
-        // Set default selected consultant to first from DB if no initial slug
         if (!initialConsultantSlug && fetchedConsultants.length > 0) {
           setSelectedConsultant(fetchedConsultants[0].slug);
         }
@@ -132,114 +168,213 @@ export const useChat = (options: UseChatOptions = {}) => {
     initialize();
   }, [initialChatId, initialConsultantSlug, loadChats, loadConversation]);
 
-  const handleSelectChat = useCallback(async (chat: Chat) => {
-    window.history.replaceState(null, "", `/chat/${chat.consultant.slug}/${chat.id}`);
-    await loadConversation(chat, true);
-    setChatStarted(true);
-  }, [loadConversation]);
+  const handleSelectChat = useCallback(
+    async (chat: Chat) => {
+      window.history.replaceState(null, "", `/chat/${chat.consultant.slug}/${chat.id}`);
+      await loadConversation(chat, true);
+      setChatStarted(true);
+    },
+    [loadConversation]
+  );
 
   const handleNewChat = useCallback(() => {
-    abortRef.current?.abort();
-    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    tokenBufferRef.current = "";
+    stopStream();
     setSelectedChat(null);
     setMessages([]);
     setConversationId(null);
-    setIsStreaming(false);
     setChatStarted(false);
     router.push("/", { scroll: false });
-  }, [router]);
+  }, [router, stopStream]);
 
-  // Accept optional overrides so callers can pass fresh values without relying on state timing
-  const handleSendMessage = useCallback(async (overrideText?: string, overrideConsultant?: string) => {
-    const userText = (overrideText ?? message).trim();
-    const consultantSlug = overrideConsultant ?? selectedConsultantRef.current;
+  const runStream = useCallback(
+    async (chatId: string, userText: string, opts: StreamOptions = {}) => {
+      const { appendUser = true, restoreDraftOnError } = opts;
+      const userMsgId = `user-${Date.now()}`;
+      const aiMsgId = `ai-${Date.now()}`;
+      tokenBufferRef.current = "";
 
-    if (!userText || isStreaming) return;
+      setMessages((prev) => {
+        const next = [...prev];
+        if (appendUser) {
+          next.push({ id: userMsgId, role: "human", content: userText });
+        }
+        next.push({ id: aiMsgId, role: "ai", content: "", streaming: true });
+        return next;
+      });
 
-    setMessage("");
+      setIsStreaming(true);
+      abortRef.current = new AbortController();
 
+      const flushBuffer = () => {
+        if (tokenBufferRef.current === "") {
+          rafRef.current = requestAnimationFrame(flushBuffer);
+          return;
+        }
+        const pending = tokenBufferRef.current;
+        tokenBufferRef.current = "";
+        setMessages((prev) =>
+          prev.map((m) => (m.id === aiMsgId ? { ...m, content: m.content + pending } : m))
+        );
+        rafRef.current = requestAnimationFrame(flushBuffer);
+      };
+      rafRef.current = requestAnimationFrame(flushBuffer);
+
+      try {
+        await streamMessage(
+          chatId,
+          userText,
+          {
+            onToken: (token) => {
+              tokenBufferRef.current += token;
+            },
+            onTitle: (title) => {
+              setSelectedChat((prev) => (prev ? { ...prev, title } : prev));
+              setChats((prev) => prev.map((c) => (c.id === chatId ? { ...c, title } : c)));
+            },
+            onDone: () => {
+              if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+              rafRef.current = null;
+              const remaining = tokenBufferRef.current;
+              tokenBufferRef.current = "";
+              setMessages((prev) =>
+                prev.map((m) => {
+                  if (m.id !== aiMsgId) return m;
+                  return { ...m, content: m.content + remaining, streaming: false };
+                })
+              );
+              setIsStreaming(false);
+              loadChats();
+            },
+            onError: (msg) => {
+              if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+              rafRef.current = null;
+              tokenBufferRef.current = "";
+              console.error("Stream error:", msg);
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === aiMsgId ? { ...m, streaming: false, error: true } : m
+                )
+              );
+              if (restoreDraftOnError) setMessage(restoreDraftOnError);
+              setIsStreaming(false);
+            },
+          },
+          abortRef.current.signal
+        );
+      } catch (err) {
+        // Abort during chat switch / new chat / unmount — ignore
+        if (err instanceof Error && err.name === "AbortError") return;
+        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        tokenBufferRef.current = "";
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === aiMsgId ? { ...m, streaming: false, error: true } : m
+          )
+        );
+        if (restoreDraftOnError) setMessage(restoreDraftOnError);
+        setIsStreaming(false);
+      }
+    },
+    [loadChats]
+  );
+
+  const ensureChat = useCallback(async (consultantSlug: string) => {
     let currentChat = selectedChatRef.current;
     if (!currentChat) {
       const chat = await createChat(consultantSlug);
       currentChat = chat;
-      // Update URL first so the route matches before we touch any state.
-      // history.replaceState avoids a Next.js navigation entirely — no remount.
       window.history.replaceState(null, "", `/chat/${chat.consultant.slug}/${chat.id}`);
       setSelectedChat(chat);
       setConversationId(chat.id);
       setChatStarted(true);
     }
+    return currentChat!;
+  }, []);
 
-    const chatId = currentChat!.id;
-    const userMsgId = `user-${Date.now()}`;
-    const aiMsgId = `ai-${Date.now()}`;
-    tokenBufferRef.current = "";
+  const handleSendMessage = useCallback(
+    async (overrideText?: string, overrideConsultant?: string) => {
+      const userText = (overrideText ?? message).trim();
+      const consultantSlug = overrideConsultant ?? selectedConsultantRef.current;
 
-    setMessages((prev) => [
-      ...prev,
-      { id: userMsgId, role: "human", content: userText },
-      { id: aiMsgId, role: "ai", content: "", streaming: true },
-    ]);
+      if (!userText || isStreamingRef.current) return;
 
-    setIsStreaming(true);
-    abortRef.current = new AbortController();
+      const draft = userText;
+      setMessage("");
 
-    const flushBuffer = () => {
-      if (tokenBufferRef.current === "") {
-        rafRef.current = requestAnimationFrame(flushBuffer);
-        return;
+      try {
+        const chat = await ensureChat(consultantSlug);
+        await runStream(chat.id, userText, {
+          appendUser: true,
+          restoreDraftOnError: draft,
+        });
+      } catch (error) {
+        console.error(error);
+        setMessage(draft);
+        setIsStreaming(false);
       }
-      const pending = tokenBufferRef.current;
-      tokenBufferRef.current = "";
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === aiMsgId ? { ...m, content: m.content + pending } : m
-        )
-      );
-      rafRef.current = requestAnimationFrame(flushBuffer);
-    };
-    rafRef.current = requestAnimationFrame(flushBuffer);
+    },
+    [message, ensureChat, runStream]
+  );
 
-    await streamMessage(
-      chatId,
-      userText,
-      {
-        onToken: (token) => {
-          tokenBufferRef.current += token;
-        },
-        onTitle: (title) => {
-          setSelectedChat((prev) => prev ? { ...prev, title } : prev);
-          setChats((prev) =>
-            prev.map((c) => (c.id === chatId ? { ...c, title } : c))
-          );
-        },
-        onDone: () => {
-          if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-          const remaining = tokenBufferRef.current;
-          tokenBufferRef.current = "";
-          setMessages((prev) =>
-            prev.map((m) => {
-              if (m.id !== aiMsgId) return m;
-              return { ...m, content: m.content + remaining, streaming: false };
-            })
-          );
-          setIsStreaming(false);
-          loadChats();
-        },
-        onError: (msg) => {
-          if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-          tokenBufferRef.current = "";
-          console.error("Stream error:", msg);
-          setMessages((prev) =>
-            prev.map((m) => m.id === aiMsgId ? { ...m, streaming: false, error: true } : m)
-          );
-          setIsStreaming(false);
-        },
-      },
-      abortRef.current.signal
-    );
-  }, [message, isStreaming, loadChats]);
+  const editMessage = useCallback(
+    async (messageId: string, newText: string) => {
+      const text = newText.trim();
+      if (!text || isStreamingRef.current) return;
+
+      const chat = selectedChatRef.current;
+      if (!chat) return;
+
+      const idx = messages.findIndex((m) => m.id === messageId);
+      if (idx < 0 || messages[idx].role !== "human") return;
+
+      try {
+        stopStream();
+        await truncateMessages(chat.id, idx);
+        setMessages((prev) => prev.slice(0, idx));
+        await runStream(chat.id, text, {
+          appendUser: true,
+          restoreDraftOnError: text,
+        });
+      } catch (error) {
+        console.error(error);
+        setIsStreaming(false);
+      }
+    },
+    [messages, stopStream, runStream]
+  );
+
+  const regenerateMessage = useCallback(
+    async (aiMessageId: string) => {
+      if (isStreamingRef.current) return;
+
+      const chat = selectedChatRef.current;
+      if (!chat) return;
+
+      const idx = messages.findIndex((m) => m.id === aiMessageId);
+      if (idx < 0 || messages[idx].role !== "ai") return;
+
+      // Prefer the human message immediately before this AI turn
+      let humanIdx = idx - 1;
+      while (humanIdx >= 0 && messages[humanIdx].role !== "human") humanIdx--;
+      if (humanIdx < 0) return;
+
+      const userText = messages[humanIdx].content;
+
+      try {
+        stopStream();
+        // Stream endpoint always appends a new human message, so truncate from
+        // the preceding human turn and re-send (same path as edit).
+        await truncateMessages(chat.id, humanIdx);
+        setMessages((prev) => prev.slice(0, humanIdx));
+        await runStream(chat.id, userText, { appendUser: true });
+      } catch (error) {
+        console.error(error);
+        setIsStreaming(false);
+      }
+    },
+    [messages, stopStream, runStream]
+  );
 
   return {
     consultants,
@@ -262,5 +397,7 @@ export const useChat = (options: UseChatOptions = {}) => {
     handleSendMessage,
     handleNewChat,
     chatStarted,
+    editMessage,
+    regenerateMessage,
   };
 };

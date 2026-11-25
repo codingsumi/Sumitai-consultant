@@ -48,15 +48,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const me = await getMe();
       setUser(me);
+      try {
+        localStorage.setItem("sumitai_authed", "1");
+      } catch {
+        /* ignore */
+      }
     } catch {
       setUser(null);
+      try {
+        localStorage.removeItem("sumitai_authed");
+      } catch {
+        /* ignore */
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    void refresh();
+    let cancelled = false;
+    const failSafe = window.setTimeout(() => {
+      if (!cancelled) setLoading(false);
+    }, 4000);
+
+    void refresh().finally(() => {
+      if (!cancelled) window.clearTimeout(failSafe);
+    });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(failSafe);
+    };
   }, [refresh]);
 
   const sendOtp = useCallback(async (email: string) => sendOtpApi(email), []);
@@ -64,24 +86,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const verifyOtp = useCallback(async (email: string, code: string) => {
     const next = await verifyOtpApi(email, code);
     setUser(next);
+    try {
+      localStorage.setItem("sumitai_authed", "1");
+    } catch {
+      /* ignore */
+    }
     return next;
   }, []);
 
   const continueAsGuest = useCallback(async (name: string) => {
     const next = await continueAsGuestApi(name);
     setUser(next);
+    try {
+      localStorage.setItem("sumitai_authed", "1");
+    } catch {
+      /* ignore */
+    }
     return next;
   }, []);
 
   const claimGuest = useCallback(async (email: string, code: string) => {
     const next = await claimGuestApi(email, code);
     setUser(next);
+    try {
+      localStorage.setItem("sumitai_authed", "1");
+    } catch {
+      /* ignore */
+    }
     return next;
   }, []);
 
   const logout = useCallback(async () => {
     await logoutApi();
     setUser(null);
+    try {
+      localStorage.removeItem("sumitai_authed");
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const updateName = useCallback(async (name: string) => {
@@ -99,6 +141,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const deleteAccount = useCallback(async () => {
     await deleteAccountApi();
     setUser(null);
+    try {
+      localStorage.removeItem("sumitai_authed");
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const value = useMemo(

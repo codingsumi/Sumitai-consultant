@@ -73,4 +73,25 @@ export const chatHistory = async (chatId: string) => {
         createdAt: "asc",
       },
   });
-}
+};
+
+/** Keep the first `keepCount` messages; delete everything after. */
+export const truncateMessages = async (chatId: string, keepCount: number) => {
+  const messages = await prisma.message.findMany({
+    where: { chatId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+
+  if (keepCount < 0) keepCount = 0;
+  if (keepCount >= messages.length) {
+    return { deleted: 0, kept: messages.length };
+  }
+
+  const toDelete = messages.slice(keepCount).map((m) => m.id);
+  await prisma.message.deleteMany({
+    where: { id: { in: toDelete } },
+  });
+
+  return { deleted: toDelete.length, kept: keepCount };
+};

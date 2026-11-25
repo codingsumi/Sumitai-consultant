@@ -15,19 +15,19 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
-    // Returning users with a session skip the login screen
     if (user && isLogin) {
       router.replace("/");
       return;
     }
 
-    // Chat deep-links require an active session
     if (!user && needsAuth) {
       router.replace("/");
     }
   }, [user, loading, isLogin, needsAuth, router]);
 
-  if (loading) {
+  // Only block protected chat routes while session is resolving.
+  // Home / login render immediately so first paint isn't gated on /auth/me.
+  if (loading && needsAuth) {
     return (
       <div className="flex h-full min-h-screen items-center justify-center bg-[#FCFCFD]">
         <div className="flex flex-col items-center gap-3">

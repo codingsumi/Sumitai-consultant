@@ -55,17 +55,18 @@ export default function GuestNameModal({ open, onClose, onSuccess }: GuestNameMo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm animate-[fadeIn_180ms_ease-out]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 px-0 sm:px-4 backdrop-blur-sm animate-[fadeIn_180ms_ease-out] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="guest-name-title"
-        className="relative w-full max-w-[400px] rounded-[24px] border border-[#ECEEF2] bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)] animate-[modalIn_220ms_ease-out]"
+        className="relative w-full max-w-[400px] rounded-t-[24px] sm:rounded-[24px] border border-[#ECEEF2] bg-white p-5 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)] animate-[modalIn_220ms_ease-out]"
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#101828]"
+          aria-label="Close"
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl text-[#9AA4B2] hover:bg-[#F7F8FA] hover:text-[#101828]"
         >
           <X className="h-4 w-4" />
         </button>
@@ -91,7 +92,7 @@ export default function GuestNameModal({ open, onClose, onSuccess }: GuestNameMo
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
-            className="w-full rounded-[14px] border border-[#ECEEF2] bg-[#FCFCFD] px-4 py-3 text-[14px] text-[#101828] outline-none transition focus:border-[#FF7A00] focus:ring-4 focus:ring-orange-100"
+            className="w-full rounded-[14px] border border-[#ECEEF2] bg-[#FCFCFD] px-4 py-3 text-[16px] sm:text-[14px] text-[#101828] outline-none transition focus:border-[#FF7A00] focus:ring-4 focus:ring-orange-100"
           />
           {error && <p className="text-[13px] text-red-500">{error}</p>}
           <button
